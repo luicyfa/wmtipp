@@ -67,7 +67,7 @@ export default async function MatchDetailPage({ params, searchParams }: { params
             Tipp-Modus: Speichern bringt dich automatisch zum nächsten offenen Spiel.
           </div>
         ) : null}
-        <section className="rounded-2xl bg-ink p-5 text-white shadow-card">
+        <section className="mex-hero rounded-2xl p-5 text-white shadow-card">
           <div className="flex items-center justify-between gap-3">
             <p className="font-bold text-white/70">Spiel {match.match_number ?? "-"} · {match.round}</p>
             <StatusBadge status={match.status} />

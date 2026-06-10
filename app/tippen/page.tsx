@@ -24,7 +24,7 @@ export default async function GuidedTipPage({
     <>
       <AppHeader player={player} />
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <section className="rounded-2xl bg-pitch p-6 text-white shadow-card">
+        <section className="mex-hero rounded-2xl p-6 text-white shadow-card">
           <p className="text-sm font-bold uppercase text-white/75">Geführtes Tippen</p>
           <h1 className="mt-2 text-3xl font-black">Alle offenen Tipps sind erledigt</h1>
           <p className="mt-3 text-white/80">

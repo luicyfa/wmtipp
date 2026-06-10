@@ -13,14 +13,14 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={clsx(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+        "inline-flex rounded-full px-3 py-1 text-xs font-black",
         status === "finished" || status === "evaluated"
-          ? "bg-ink text-white"
+          ? "bg-pitch text-white"
           : status === "live"
             ? "bg-coral text-white"
             : status === "predicted"
-              ? "bg-pitch text-white"
-              : "bg-sun/25 text-amber-900"
+              ? "bg-leaf text-white"
+              : "bg-sun/30 text-amber-950"
       )}
     >
       {labels[status] ?? status}

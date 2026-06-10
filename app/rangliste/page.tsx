@@ -20,7 +20,7 @@ export default async function RankingPage() {
       <AppHeader player={player} />
       <main className="mx-auto max-w-5xl px-4 py-6">
         <h1 className="text-3xl font-black">Rangliste</h1>
-        <section className="mt-5 rounded-2xl bg-ink p-5 text-white shadow-card">
+        <section className="mex-hero mt-5 rounded-2xl p-5 text-white shadow-card">
           <p className="text-sm font-bold uppercase text-white/65">Dein Abstand</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl bg-white/10 p-4">

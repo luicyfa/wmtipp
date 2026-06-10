@@ -5,13 +5,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pitch: "#0f7a4f",
-        ink: "#172033",
-        sun: "#f6c453",
-        coral: "#f9735b"
+        pitch: "#0B5D3B",
+        grass: "#0F7A4F",
+        leaf: "#1FA463",
+        ink: "#10231A",
+        sun: "#F6C453",
+        coral: "#D62828"
       },
       boxShadow: {
-        card: "0 10px 35px rgba(23, 32, 51, 0.08)"
+        card: "0 10px 35px rgba(11, 93, 59, 0.10)"
       }
     }
   },

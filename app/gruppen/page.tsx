@@ -18,7 +18,7 @@ export default async function GroupsPage() {
     <>
       <AppHeader player={player} />
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <section className="rounded-2xl bg-ink p-5 text-white shadow-card">
+        <section className="mex-hero rounded-2xl p-5 text-white shadow-card">
           <p className="text-sm font-bold uppercase text-white/65">Gruppenphase</p>
           <h1 className="mt-2 text-3xl font-black">Tabellen & Wenn-es-so-bleibt</h1>
           <p className="mt-3 text-white/75">

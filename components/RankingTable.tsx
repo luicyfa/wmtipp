@@ -6,7 +6,7 @@ export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; cu
   return (
     <>
       <div className="overflow-hidden rounded-xl bg-white shadow-card md:hidden">
-        <div className="grid grid-cols-[3.25rem_1fr_4.5rem] bg-ink px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+        <div className="grid grid-cols-[3.25rem_1fr_4.5rem] bg-pitch px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
           <span>Platz</span>
           <span>Name</span>
           <span className="text-right">Punkte</span>
@@ -45,7 +45,7 @@ export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; cu
       <div className="hidden overflow-hidden rounded-xl bg-white shadow-card md:block">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-ink text-white">
+          <thead className="bg-pitch text-white">
             <tr>
               <th className="px-4 py-3">Platz</th>
               <th className="px-4 py-3">Name</th>

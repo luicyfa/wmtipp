@@ -5,7 +5,7 @@ import type { Player } from "@/lib/types";
 
 export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"> }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/70 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/70 bg-white/[0.92] backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold text-ink">
           <Trophy className="h-5 w-5 text-pitch" />
@@ -13,7 +13,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
         </Link>
         <div className="flex items-center gap-2">
           {player.is_admin ? (
-            <Link href="/admin" className="focus-ring rounded-full bg-ink px-3 py-2 text-xs font-semibold text-white">
+            <Link href="/admin" className="focus-ring rounded-full bg-pitch px-3 py-2 text-xs font-semibold text-white">
               <Shield className="mr-1 inline h-3 w-3" />
               Admin
             </Link>

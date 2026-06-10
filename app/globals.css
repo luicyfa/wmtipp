@@ -11,9 +11,9 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(15, 122, 79, 0.12), transparent 28rem),
-    linear-gradient(180deg, #f8faf7 0%, #eef5f0 100%);
-  color: #172033;
+    radial-gradient(circle at top left, rgba(31, 164, 99, 0.14), transparent 28rem),
+    linear-gradient(180deg, #f8faf7 0%, #edf6f0 100%);
+  color: #10231a;
 }
 
 input,
@@ -28,6 +28,39 @@ button {
 
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-pitch focus:ring-offset-2;
+}
+
+.mex-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(31, 164, 99, 0.28), transparent 18rem),
+    radial-gradient(circle at 90% 0%, rgba(246, 196, 83, 0.12), transparent 14rem),
+    linear-gradient(135deg, #073f2a 0%, #0b5d3b 48%, #064b32 100%);
+}
+
+.mex-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(135deg, transparent 0 46%, rgba(248, 250, 247, 0.22) 46% 50%, transparent 50% 100%),
+    linear-gradient(45deg, transparent 0 46%, rgba(31, 164, 99, 0.42) 46% 50%, transparent 50% 100%);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+
+.mex-hero > * {
+  position: relative;
+}
+
+.mex-login {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(31, 164, 99, 0.32), transparent 18rem),
+    radial-gradient(circle at 20% 85%, rgba(246, 196, 83, 0.16), transparent 16rem),
+    linear-gradient(145deg, #063724 0%, #0b5d3b 52%, #042a1c 100%);
 }
 
 @tailwind utilities;

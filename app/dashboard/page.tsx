@@ -71,7 +71,7 @@ export default async function DashboardPage() {
     <>
       <AppHeader player={player} />
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <section className="rounded-2xl bg-ink p-5 text-white shadow-card">
+        <section className="mex-hero rounded-2xl p-5 text-white shadow-card">
           <p className="text-sm font-semibold text-white/70">Hallo {player.name}</p>
           <h1 className="mt-1 text-3xl font-black">Dein WM-Stand</h1>
           <div className="mt-5 grid grid-cols-2 gap-3">

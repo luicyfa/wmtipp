@@ -27,7 +27,7 @@ export default async function AdminPage() {
       <main className="mx-auto max-w-5xl px-4 py-6">
         <AdminNav />
         <h1 className="text-3xl font-black">Admin-Dashboard</h1>
-        <section className="mt-5 rounded-2xl bg-ink p-5 text-white shadow-card">
+        <section className="mex-hero mt-5 rounded-2xl p-5 text-white shadow-card">
           <p className="text-sm font-black uppercase text-white/65">Turnierleitung</p>
           <h2 className="mt-2 text-3xl font-black">
             {dueResults.length ? `${dueResults.length} Ergebnisse fehlen` : "Alles aktuell"}

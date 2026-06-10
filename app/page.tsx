@@ -18,15 +18,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const setup = getSetupStatus();
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <section className="w-full max-w-md rounded-2xl bg-white p-6 shadow-card">
+    <main className="mex-login flex min-h-screen items-center justify-center px-4 py-10">
+      <section className="w-full max-w-md rounded-2xl bg-white/95 p-6 shadow-card backdrop-blur">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-[1.35rem] shadow-card ring-4 ring-white">
+          <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-[1.6rem] shadow-card ring-4 ring-white">
             <Image
               src="/icon.png"
               alt="WM-Tipp App Icon"
-              width={80}
-              height={80}
+              width={96}
+              height={96}
               priority
               className="h-full w-full object-cover"
             />
