@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2, Goal, ListChecks, Trophy } from "lucide-react";
+import { CheckCircle2, Goal, ListChecks, Medal, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { requirePlayer } from "@/lib/auth";
 
@@ -75,6 +75,31 @@ export default async function RulesPage() {
                 <span className="text-sm text-slate-600">{reason}</span>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl bg-white p-4 shadow-card">
+          <h2 className="text-xl font-black">Bonus-Tipps</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Bonuspunkte sind Extra-Chancen, aber die normalen Spieltipps bleiben der wichtigste Teil des Tippspiels.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <article className="rounded-xl bg-sun p-4 text-amber-950">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-6 w-6" />
+                <h3 className="text-lg font-black">Weltmeister richtig</h3>
+              </div>
+              <p className="mt-3 text-4xl font-black">10 Punkte</p>
+              <p className="mt-2 text-sm font-semibold">Der Tipp ist bis zum Eröffnungsspiel möglich.</p>
+            </article>
+            <article className="rounded-xl bg-pitch/10 p-4 text-pitch">
+              <div className="flex items-center gap-2">
+                <Medal className="h-6 w-6" />
+                <h3 className="text-lg font-black">Gruppensieger richtig</h3>
+              </div>
+              <p className="mt-3 text-4xl font-black">2 Punkte</p>
+              <p className="mt-2 text-sm font-semibold">Pro Gruppe. Der Tipp ist bis zum ersten Spiel der jeweiligen Gruppe möglich.</p>
+            </article>
           </div>
         </section>
 

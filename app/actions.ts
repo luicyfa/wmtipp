@@ -6,6 +6,7 @@ import Papa from "papaparse";
 import { clearSession, hashPin, requireAdmin, requirePlayer, setSession, validatePin, verifyPin } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMatch, getMatches, getPlayerPredictions, getScoreRules } from "@/lib/data";
+import { buildGroupTables } from "@/lib/groups";
 import { calculatePredictionPoints, isPredictionLocked } from "@/lib/scoring";
 
 function formString(formData: FormData, key: string) {
@@ -126,6 +127,60 @@ export async function saveWorldChampionPredictionAction(formData: FormData) {
   redirect("/bonus?saved=1");
 }
 
+export async function saveGroupWinnerPredictionsAction(formData: FormData) {
+  const player = await requirePlayer();
+  if (!player) redirect("/?error=session");
+  if (player.is_admin) redirect("/admin?error=admin-tippt-nicht");
+
+  const matches = await getMatches();
+  const supabase = createServerSupabaseClient();
+  const { data: teams, error: teamsError } = await supabase
+    .from("teams")
+    .select("id,group_code")
+    .eq("placeholder", false);
+  if (teamsError) throw teamsError;
+
+  const teamGroup = new Map((teams ?? []).map((team) => [team.id as string, team.group_code as string | null]));
+  const rows = [];
+
+  for (const groupCode of "ABCDEFGHIJKL".split("")) {
+    const teamId = formString(formData, `group_${groupCode}`);
+    if (!teamId) continue;
+
+    const firstGroupKickoff = matches
+      .filter((match) => match.group_code === groupCode)
+      .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0]?.kickoff_at;
+
+    if (firstGroupKickoff && isPredictionLocked(firstGroupKickoff)) {
+      redirect(`/bonus?error=gruppe-gesperrt&group=${groupCode}`);
+    }
+
+    if (teamGroup.get(teamId) !== groupCode) {
+      redirect(`/bonus?error=ungueltige-gruppe&group=${groupCode}`);
+    }
+
+    rows.push({
+      player_id: player.id,
+      type: `group_winner_${groupCode}`,
+      team_id: teamId,
+      value: groupCode,
+      points: 0,
+      locked_at: null
+    });
+  }
+
+  if (!rows.length) redirect("/bonus?error=gruppen-fehlen");
+
+  const { error } = await supabase
+    .from("bonus_predictions")
+    .upsert(rows, { onConflict: "player_id,type" });
+  if (error) throw error;
+
+  revalidatePath("/bonus");
+  revalidatePath("/dashboard");
+  redirect("/bonus?saved=groups");
+}
+
 export async function saveResultAction(formData: FormData) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");
@@ -149,8 +204,10 @@ export async function saveResultAction(formData: FormData) {
   if (error) throw error;
 
   await recalculateMatch(matchId);
+  await evaluateCompletedGroupWinnerBonuses();
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
+  revalidatePath("/dashboard");
   revalidatePath(`/spiele/${matchId}`);
   redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}result=saved`);
 }
@@ -161,8 +218,10 @@ export async function recalculateMatchAction(formData: FormData) {
   const matchId = formString(formData, "matchId");
   const returnTo = formString(formData, "returnTo") || "/admin/spiele";
   await recalculateMatch(matchId);
+  await evaluateCompletedGroupWinnerBonuses();
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
+  revalidatePath("/dashboard");
   redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}result=recalculated`);
 }
 
@@ -182,6 +241,51 @@ async function recalculateMatch(matchId: string) {
       .from("predictions")
       .update({ ...result, locked_at: match.kickoff_at, updated_at: new Date().toISOString() })
       .eq("id", prediction.id);
+  }
+}
+
+async function evaluateCompletedGroupWinnerBonuses() {
+  const matches = await getMatches();
+  const completedGroups = buildGroupTables(matches).filter(
+    (group) => group.totalMatches > 0 && group.finishedMatches === group.totalMatches && group.standings[0]
+  );
+  if (!completedGroups.length) return;
+
+  const supabase = createServerSupabaseClient();
+  const { data: teams, error: teamsError } = await supabase
+    .from("teams")
+    .select("id,name,group_code")
+    .eq("placeholder", false);
+  if (teamsError) throw teamsError;
+
+  const teamByGroupAndName = new Map(
+    (teams ?? []).map((team) => [`${team.group_code}:${team.name}`, team.id as string])
+  );
+
+  for (const group of completedGroups) {
+    const winnerName = group.standings[0]?.teamName;
+    const winnerTeamId = teamByGroupAndName.get(`${group.groupCode}:${winnerName}`);
+    if (!winnerTeamId) continue;
+
+    const type = `group_winner_${group.groupCode}`;
+    const firstKickoff = group.matches
+      .map((match) => match.kickoff_at)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
+    const { data: bonusPredictions, error } = await supabase
+      .from("bonus_predictions")
+      .select("id,team_id")
+      .eq("type", type);
+    if (error) throw error;
+
+    for (const prediction of bonusPredictions ?? []) {
+      await supabase
+        .from("bonus_predictions")
+        .update({
+          points: prediction.team_id === winnerTeamId ? 2 : 0,
+          locked_at: firstKickoff ?? null
+        })
+        .eq("id", prediction.id);
+    }
   }
 }
 

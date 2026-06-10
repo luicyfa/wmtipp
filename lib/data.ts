@@ -106,3 +106,16 @@ export async function getWorldChampionPrediction(playerId: string): Promise<Bonu
   if (error) throw error;
   return data as BonusPrediction | null;
 }
+
+export async function getGroupWinnerPredictions(playerId: string): Promise<BonusPrediction[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("bonus_predictions")
+    .select("*,team:teams(id,name,short_name)")
+    .eq("player_id", playerId)
+    .like("type", "group_winner_%")
+    .order("type", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as BonusPrediction[];
+}

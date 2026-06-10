@@ -5,51 +5,42 @@ import type { RankingRow } from "@/lib/types";
 export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; currentPlayerId?: string }) {
   return (
     <>
-      <div className="space-y-3 md:hidden">
-        {rows.map((row, index) => {
-          const isCurrent = row.player_id === currentPlayerId;
-          return (
-            <article
-              key={row.player_id}
-              className={clsx(
-                "rounded-xl bg-white p-4 shadow-card",
-                isCurrent && "bg-sun/25 ring-2 ring-sun"
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
+      <div className="overflow-hidden rounded-xl bg-white shadow-card md:hidden">
+        <div className="grid grid-cols-[3.25rem_1fr_4.5rem] bg-ink px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+          <span>Platz</span>
+          <span>Name</span>
+          <span className="text-right">Punkte</span>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {rows.map((row, index) => {
+            const isCurrent = row.player_id === currentPlayerId;
+            return (
+              <div
+                key={row.player_id}
+                className={clsx(
+                  "grid grid-cols-[3.25rem_1fr_4.5rem] items-center gap-2 px-3 py-3",
+                  isCurrent && "bg-sun/25"
+                )}
+              >
+                <span className="inline-flex items-center gap-1 font-black text-ink">
+                  {index === 0 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
+                  {index > 0 && index < 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
+                  {index + 1}
+                </span>
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-pitch">
-                    {index === 0 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
-                    {index > 0 && index < 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
-                    Platz {index + 1}
-                  </p>
-                  <h2 className="mt-1 break-words text-xl font-black text-ink">
+                  <p className="truncate font-black text-ink">
                     {row.name}
-                    {isCurrent ? <span className="ml-2 rounded-full bg-pitch px-2 py-0.5 align-middle text-xs font-black text-white">Du</span> : null}
-                  </h2>
+                    {isCurrent ? <span className="ml-2 rounded-full bg-pitch px-2 py-0.5 align-middle text-[10px] font-black text-white">Du</span> : null}
+                  </p>
+                  <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                    {row.exact_scores} exakt · {row.correct_tendencies} Tendenz · {row.open_predictions} offen
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-3xl font-black text-ink">{row.total_points}</p>
-                  <p className="text-xs font-bold text-slate-500">Punkte</p>
-                </div>
+                <span className="text-right text-xl font-black text-ink">{row.total_points}</span>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
-                <div className="rounded-lg bg-slate-50 px-2 py-2">
-                  <p className="font-black">{row.exact_scores}</p>
-                  <p className="text-xs text-slate-500">Exakt</p>
-                </div>
-                <div className="rounded-lg bg-slate-50 px-2 py-2">
-                  <p className="font-black">{row.correct_tendencies}</p>
-                  <p className="text-xs text-slate-500">Tendenz</p>
-                </div>
-                <div className="rounded-lg bg-slate-50 px-2 py-2">
-                  <p className="font-black">{row.open_predictions}</p>
-                  <p className="text-xs text-slate-500">Offen</p>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
       <div className="hidden overflow-hidden rounded-xl bg-white shadow-card md:block">
         <div className="overflow-x-auto">

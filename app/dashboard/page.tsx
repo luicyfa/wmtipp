@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AlertCircle, Calendar, Medal, PlusSquare, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
-import { getMatches, getPlayerPredictions, getWorldChampionPrediction } from "@/lib/data";
+import { getGroupWinnerPredictions, getMatches, getPlayerPredictions, getWorldChampionPrediction } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer } from "@/lib/rankings";
 import { addDays, startOfLocalDay } from "@/lib/dates";
@@ -14,11 +14,12 @@ export default async function DashboardPage() {
   if (!player) redirect("/");
   if (player.is_admin) redirect("/admin");
 
-  const [matches, predictions, rankings, worldChampionPrediction] = await Promise.all([
+  const [matches, predictions, rankings, worldChampionPrediction, groupWinnerPredictions] = await Promise.all([
     getMatches(),
     getPlayerPredictions(player.id),
     getRankings(),
-    getWorldChampionPrediction(player.id)
+    getWorldChampionPrediction(player.id),
+    getGroupWinnerPredictions(player.id)
   ]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
   const own = rankings.find((row) => row.player_id === player.id);
   const nextMissing = missing[0] ?? null;
   const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
+  const missingBonusTips = (worldChampionPrediction ? 0 : 1) + Math.max(0, 12 - groupWinnerPredictions.length);
 
   return (
     <>
@@ -82,17 +84,20 @@ export default async function DashboardPage() {
         <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
           <h2 className="flex items-center gap-2 text-xl font-black">
             <Trophy className="h-5 w-5 text-sun" />
-            Weltmeister-Tipp
+            Bonus-Tipps
           </h2>
-          {worldChampionPrediction?.team ? (
+          {worldChampionPrediction?.team && groupWinnerPredictions.length === 12 ? (
             <p className="mt-2 text-slate-700">
-              Dein Bonus-Joker steht auf <strong>{worldChampionPrediction.team.name}</strong>.
+              Alles erledigt. Weltmeister: <strong>{worldChampionPrediction.team.name}</strong>, Gruppensieger: <strong>12 von 12</strong>.
             </p>
           ) : (
             <div className="mt-3 rounded-xl bg-sun/30 p-4 text-amber-950">
-              <p className="font-black">Dein Weltmeister-Tipp fehlt noch.</p>
+              <p className="font-black">Dir fehlen noch {missingBonusTips} Bonus-Tipps.</p>
+              <p className="mt-1 text-sm font-semibold">
+                Weltmeister und Gruppensieger bringen Extra-Punkte.
+              </p>
               <Link href="/bonus" className="focus-ring mt-3 inline-flex rounded-xl bg-amber-950 px-4 py-3 font-black text-white">
-                Jetzt Weltmeister tippen
+                Bonus-Tipps erledigen
               </Link>
             </div>
           )}

@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2, Trophy } from "lucide-react";
+import { CheckCircle2, ListChecks, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FeedbackToast } from "@/components/FeedbackToast";
-import { saveWorldChampionPredictionAction } from "@/app/actions";
+import { saveGroupWinnerPredictionsAction, saveWorldChampionPredictionAction } from "@/app/actions";
 import { requirePlayer } from "@/lib/auth";
-import { getMatches, getTeams, getWorldChampionPrediction } from "@/lib/data";
+import { getGroupWinnerPredictions, getMatches, getTeams, getWorldChampionPrediction } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
+
+const groupCodes = "ABCDEFGHIJKL".split("");
 
 export default async function BonusPage({
   searchParams
@@ -18,18 +20,35 @@ export default async function BonusPage({
   if (player.is_admin) redirect("/admin");
 
   const params = await searchParams;
-  const [teams, prediction, matches] = await Promise.all([
+  const [teams, prediction, groupWinnerPredictions, matches] = await Promise.all([
     getTeams(),
     getWorldChampionPrediction(player.id),
+    getGroupWinnerPredictions(player.id),
     getMatches()
   ]);
   const firstKickoff = matches[0]?.kickoff_at;
   const locked = firstKickoff ? isPredictionLocked(firstKickoff) : false;
+  const groupPredictionMap = new Map(
+    groupWinnerPredictions.map((item) => [item.type.replace("group_winner_", ""), item])
+  );
+  const groupTeams = new Map(groupCodes.map((groupCode) => [
+    groupCode,
+    teams.filter((team) => team.group_code === groupCode)
+  ]));
+  const missingGroupTips = groupCodes.filter((groupCode) => !groupPredictionMap.has(groupCode)).length;
   const message =
-    params.saved
+    params.saved === "groups"
+      ? "Gruppensieger gespeichert. Das macht die Vorrunde gleich spannender."
+      : params.saved
       ? "Weltmeister-Tipp gespeichert. Der bleibt jetzt dein großer Bonus-Joker."
       : params.error === "bonus-gesperrt"
         ? "Der Weltmeister-Tipp ist jetzt gesperrt, weil die WM schon begonnen hat."
+        : params.error === "gruppe-gesperrt"
+          ? "Diese Gruppe hat schon begonnen. Der Gruppensieger-Tipp ist gesperrt."
+          : params.error === "gruppen-fehlen"
+            ? "Such dir mindestens einen Gruppensieger aus."
+            : params.error === "ungueltige-gruppe"
+              ? "Dieser Tipp passt nicht zur ausgewählten Gruppe."
         : params.error === "team-fehlt"
           ? "Bitte such dir ein Team als Weltmeister aus."
           : null;
@@ -41,9 +60,9 @@ export default async function BonusPage({
       <main className="mx-auto max-w-3xl px-4 py-6">
         <section className="rounded-2xl bg-ink p-5 text-white shadow-card">
           <p className="text-sm font-bold uppercase text-white/65">Bonus-Tipp</p>
-          <h1 className="mt-2 text-3xl font-black">Wer wird Weltmeister?</h1>
+          <h1 className="mt-2 text-3xl font-black">Bonus-Tipps</h1>
           <p className="mt-3 text-white/75">
-            Tipp einmal den Weltmeister. Wenn es stimmt, gibt es später Bonuspunkte. Der Tipp ist bis zum Eröffnungsspiel möglich.
+            Tipp den Weltmeister und die Gruppensieger. Das sind Extra-Punkte, aber die normalen Spieltipps bleiben der Hauptteil.
           </p>
         </section>
 
@@ -67,6 +86,13 @@ export default async function BonusPage({
         )}
 
         <form action={saveWorldChampionPredictionAction} className="mt-5 rounded-xl bg-white p-4 shadow-card">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-black">Weltmeister</h2>
+              <p className="mt-1 text-sm text-slate-600">Richtig getippt: 10 Bonuspunkte.</p>
+            </div>
+            <span className="rounded-full bg-sun px-3 py-1 text-sm font-black text-amber-950">10 Punkte</span>
+          </div>
           <label className="text-sm font-bold">
             Weltmeister auswählen
             <select
@@ -97,6 +123,80 @@ export default async function BonusPage({
                 : "Tipp möglich bis zum ersten Spiel."}
           </p>
         </form>
+
+        <section className="mt-6 rounded-2xl bg-white p-4 shadow-card">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-xl font-black">
+                <ListChecks className="h-5 w-5 text-pitch" />
+                Gruppensieger
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Pro richtigem Gruppensieger gibt es 2 Punkte. Jeder Tipp ist bis zum ersten Spiel der jeweiligen Gruppe möglich.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-pitch px-3 py-1 text-sm font-black text-white">
+              {12 - missingGroupTips}/12
+            </span>
+          </div>
+
+          {missingGroupTips ? (
+            <div className="mt-4 rounded-xl bg-sun/30 p-3 text-sm font-bold text-amber-950">
+              Dir fehlen noch {missingGroupTips} Gruppensieger-Tipps.
+            </div>
+          ) : (
+            <div className="mt-4 rounded-xl bg-pitch/10 p-3 text-sm font-bold text-pitch">
+              Alle Gruppensieger sind getippt.
+            </div>
+          )}
+
+          <form action={saveGroupWinnerPredictionsAction} className="mt-4 space-y-3">
+            {groupCodes.map((groupCode) => {
+              const teamsForGroup = groupTeams.get(groupCode) ?? [];
+              const currentPrediction = groupPredictionMap.get(groupCode);
+              const firstGroupKickoff = matches
+                .filter((match) => match.group_code === groupCode)
+                .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0]?.kickoff_at;
+              const groupLocked = firstGroupKickoff ? isPredictionLocked(firstGroupKickoff) : false;
+
+              return (
+                <article key={groupCode} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-black">Gruppe {groupCode}</h3>
+                      <p className="text-xs font-semibold text-slate-500">
+                        {groupLocked
+                          ? "Gesperrt"
+                          : firstGroupKickoff
+                            ? `Bis ${formatDateTime(firstGroupKickoff)}`
+                            : "Bis zum ersten Gruppenspiel"}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-black ${currentPrediction ? "bg-pitch text-white" : "bg-white text-slate-600"}`}>
+                      {currentPrediction ? "Gespeichert" : "Offen"}
+                    </span>
+                  </div>
+                  <select
+                    name={`group_${groupCode}`}
+                    defaultValue={currentPrediction?.team_id ?? ""}
+                    disabled={groupLocked}
+                    className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-4 py-4 font-semibold disabled:bg-slate-100"
+                  >
+                    <option value="">Gruppensieger auswählen</option>
+                    {teamsForGroup.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                </article>
+              );
+            })}
+            <button className="focus-ring w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
+              Gruppensieger speichern
+            </button>
+          </form>
+        </section>
       </main>
     </>
   );
