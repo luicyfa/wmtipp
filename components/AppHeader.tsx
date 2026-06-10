@@ -36,6 +36,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/admin">Admin</Link>
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/rangliste">Rangliste</Link>
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/gruppen">Gruppen</Link>
+            <Link className="rounded-full bg-slate-100 px-3 py-2" href="/regeln">Regeln</Link>
           </>
         ) : (
           <>
@@ -45,6 +46,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/spiele">Spiele</Link>
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/gruppen">Gruppen</Link>
             <Link className="rounded-full bg-slate-100 px-3 py-2" href="/bonus">Bonus</Link>
+            <Link className="rounded-full bg-slate-100 px-3 py-2" href="/regeln">Regeln</Link>
           </>
         )}
       </nav>

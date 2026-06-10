@@ -19,12 +19,11 @@ function getStatusLabel(status: string) {
 }
 
 const filters = [
-  ["alle", "Alle"],
-  ["offen", "Offen"],
   ["faellig", "Auszuwerten"],
   ["heute", "Heute"],
+  ["offen", "Offen"],
+  ["alle", "Alle"],
   ["morgen", "Morgen"],
-  ["live", "Live"],
   ["beendet", "Beendet"]
 ];
 
@@ -40,7 +39,7 @@ export default async function AdminMatchesPage({
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");
   const params = await searchParams;
-  const activeFilter = params.filter ?? "alle";
+  const activeFilter = params.filter ?? "faellig";
   const query = (params.q ?? "").trim().toLowerCase();
   const matches = await getMatches();
   const unfinished = matches.filter((match) => match.status !== "finished").length;
@@ -110,14 +109,12 @@ export default async function AdminMatchesPage({
             <strong className="text-3xl">{finished}</strong>
           </div>
         </div>
-        <section className="mt-5 rounded-xl bg-sun/30 p-4 text-amber-950 shadow-sm">
+        <section className="mt-5 rounded-2xl bg-sun p-5 text-amber-950 shadow-card">
           <p className="text-sm font-black uppercase tracking-wide">Ergebnisassistent</p>
           <h2 className="mt-1 text-2xl font-black">
             {missingResults.length ? `${missingResults.length} Spiele warten aufs Ergebnis` : "Alles erledigt"}
           </h2>
-          <p className="mt-2 text-sm font-semibold">
-            Hier landen Spiele, die schon begonnen haben und noch nicht als Beendet ausgewertet sind.
-          </p>
+          <p className="mt-2 text-sm font-semibold">Standardmäßig siehst du nur Spiele, die schon begonnen haben und noch ein Ergebnis brauchen.</p>
           {nextMissingResult ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <Link href={`/admin/spiele?filter=faellig#match-${nextMissingResult.id}`} className="focus-ring rounded-xl bg-amber-950 px-4 py-3 text-center font-black text-white">
@@ -167,7 +164,7 @@ export default async function AdminMatchesPage({
         </section>
         <div className="mt-5 space-y-3">
           {nextMatches.length ? nextMatches.map((match) => (
-            <div key={match.id} id={`match-${match.id}`} className="scroll-mt-36 rounded-xl bg-white p-4 shadow-card">
+            <div key={match.id} id={`match-${match.id}`} className="scroll-mt-36 rounded-2xl bg-white p-4 shadow-card">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase text-pitch">Spiel {match.match_number ?? "-"} · {formatDateTime(match.kickoff_at)}</p>
@@ -183,19 +180,21 @@ export default async function AdminMatchesPage({
                 <input type="hidden" name="returnTo" value={returnTo} />
                 <label className="text-sm font-bold">
                   Heimtore
-                  <input name="homeScore" type="number" min="0" defaultValue={match.home_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-4 text-center text-2xl font-black" />
+                  <input name="homeScore" type="number" min="0" defaultValue={match.home_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
                 </label>
                 <span className="hidden pb-4 text-2xl font-black text-slate-300 sm:block">:</span>
                 <label className="text-sm font-bold">
                   Auswärtstore
-                  <input name="awayScore" type="number" min="0" defaultValue={match.away_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-4 text-center text-2xl font-black" />
+                  <input name="awayScore" type="number" min="0" defaultValue={match.away_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
                 </label>
                 <select name="status" defaultValue={match.status} className="focus-ring rounded-xl border border-slate-200 px-4 py-4 font-semibold">
                   <option value="scheduled">Offen</option>
                   <option value="live">Gesperrt</option>
                   <option value="finished">Beendet</option>
                 </select>
-                <button className="focus-ring rounded-xl bg-pitch px-4 py-4 font-bold text-white">Ergebnis speichern</button>
+                <button className="focus-ring rounded-xl bg-pitch px-4 py-5 font-black text-white">
+                  {activeFilter === "faellig" ? "Speichern & nächstes" : "Ergebnis speichern"}
+                </button>
               </form>
               <form action={recalculateMatchAction} className="mt-2">
                 <input type="hidden" name="matchId" value={match.id} />
