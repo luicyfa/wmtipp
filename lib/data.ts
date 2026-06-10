@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { defaultScoreRules } from "@/lib/scoring";
-import type { Match, Player, Prediction, ScoreRules } from "@/lib/types";
+import type { BonusPrediction, Match, Player, Prediction, ScoreRules, Team } from "@/lib/types";
 
 export async function getScoreRules(): Promise<ScoreRules> {
   const supabase = createServerSupabaseClient();
@@ -80,4 +80,29 @@ export async function getPlayers(includeInactive = false): Promise<Player[]> {
   const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as Player[];
+}
+
+export async function getTeams(): Promise<Team[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("teams")
+    .select("*")
+    .eq("placeholder", false)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as Team[];
+}
+
+export async function getWorldChampionPrediction(playerId: string): Promise<BonusPrediction | null> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("bonus_predictions")
+    .select("*,team:teams(id,name,short_name)")
+    .eq("player_id", playerId)
+    .eq("type", "world_champion")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as BonusPrediction | null;
 }

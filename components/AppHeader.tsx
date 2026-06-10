@@ -30,6 +30,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
         <Link className="rounded-full bg-sun px-5 py-2 font-black text-amber-950 shadow-sm" href="/tippen">Tippen</Link>
         <Link className="rounded-full bg-slate-100 px-3 py-2" href="/rangliste">Rangliste</Link>
         <Link className="rounded-full bg-slate-100 px-3 py-2" href="/gruppen">Gruppen</Link>
+        <Link className="rounded-full bg-slate-100 px-3 py-2" href="/bonus">Bonus</Link>
         <Link className="rounded-full bg-slate-100 px-3 py-2" href="/meine-tipps">Meine Tipps</Link>
         <Link className="rounded-full bg-slate-100 px-3 py-2" href="/spiele">Spiele</Link>
         <Link className="rounded-full bg-slate-100 px-3 py-2" href="/dashboard">Dashboard</Link>

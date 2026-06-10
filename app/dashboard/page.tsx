@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, Calendar, Medal, PlusSquare } from "lucide-react";
+import { AlertCircle, Calendar, Medal, PlusSquare, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
-import { getMatches, getPlayerPredictions } from "@/lib/data";
+import { getMatches, getPlayerPredictions, getWorldChampionPrediction } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer } from "@/lib/rankings";
 import { addDays, startOfLocalDay } from "@/lib/dates";
@@ -13,10 +13,11 @@ export default async function DashboardPage() {
   const player = await requirePlayer();
   if (!player) redirect("/");
 
-  const [matches, predictions, rankings] = await Promise.all([
+  const [matches, predictions, rankings, worldChampionPrediction] = await Promise.all([
     getMatches(),
     getPlayerPredictions(player.id),
-    getRankings()
+    getRankings(),
+    getWorldChampionPrediction(player.id)
   ]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
@@ -76,6 +77,25 @@ export default async function DashboardPage() {
         ) : (
           <div className="mt-5 rounded-xl bg-pitch/10 p-4 font-bold text-pitch">Alles erledigt. Du bist bereit.</div>
         )}
+
+        <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
+          <h2 className="flex items-center gap-2 text-xl font-black">
+            <Trophy className="h-5 w-5 text-sun" />
+            Weltmeister-Tipp
+          </h2>
+          {worldChampionPrediction?.team ? (
+            <p className="mt-2 text-slate-700">
+              Dein Bonus-Joker steht auf <strong>{worldChampionPrediction.team.name}</strong>.
+            </p>
+          ) : (
+            <div className="mt-3 rounded-xl bg-sun/30 p-4 text-amber-950">
+              <p className="font-black">Dein Weltmeister-Tipp fehlt noch.</p>
+              <Link href="/bonus" className="focus-ring mt-3 inline-flex rounded-xl bg-amber-950 px-4 py-3 font-black text-white">
+                Jetzt Weltmeister tippen
+              </Link>
+            </div>
+          )}
+        </section>
 
         <section className="mt-6">
           <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Calendar className="h-5 w-5 text-pitch" />Heutige Spiele</h2>

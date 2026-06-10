@@ -91,6 +91,38 @@ export async function savePredictionAction(formData: FormData) {
   redirect(`/spiele/${matchId}?${savedQuery}`);
 }
 
+export async function saveWorldChampionPredictionAction(formData: FormData) {
+  const player = await requirePlayer();
+  if (!player) redirect("/?error=session");
+
+  const teamId = formString(formData, "teamId");
+  if (!teamId) redirect("/bonus?error=team-fehlt");
+
+  const matches = await getMatches();
+  const firstKickoff = matches[0]?.kickoff_at;
+  if (firstKickoff && isPredictionLocked(firstKickoff)) {
+    redirect("/bonus?error=bonus-gesperrt");
+  }
+
+  const supabase = createServerSupabaseClient();
+  const { error } = await supabase.from("bonus_predictions").upsert(
+    {
+      player_id: player.id,
+      type: "world_champion",
+      team_id: teamId,
+      value: null,
+      points: 0,
+      locked_at: null
+    },
+    { onConflict: "player_id,type" }
+  );
+  if (error) throw error;
+
+  revalidatePath("/bonus");
+  revalidatePath("/dashboard");
+  redirect("/bonus?saved=1");
+}
+
 export async function saveResultAction(formData: FormData) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");

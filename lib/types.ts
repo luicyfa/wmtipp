@@ -60,6 +60,18 @@ export type Prediction = {
   player?: Pick<Player, "id" | "name"> | null;
 };
 
+export type BonusPrediction = {
+  id: string;
+  player_id: string;
+  type: string;
+  team_id: string | null;
+  value: string | null;
+  points: number;
+  locked_at: string | null;
+  created_at: string;
+  team?: Pick<Team, "id" | "name" | "short_name"> | null;
+};
+
 export type ScoreRules = {
   id?: string;
   exact_score_points: number;
