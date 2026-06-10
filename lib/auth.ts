@@ -7,6 +7,7 @@ import type { Player } from "@/lib/types";
 
 const scrypt = promisify(scryptCallback);
 const SESSION_COOKIE = "wm_session";
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 
 type SessionPayload = {
   playerId: string;
@@ -54,7 +55,7 @@ export async function setSession(player: Pick<Player, "id" | "name" | "is_admin"
     playerId: player.id,
     name: player.name,
     isAdmin: player.is_admin,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30
+    exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS
   };
   const body = base64Url(JSON.stringify(payload));
   const value = `${body}.${sign(body)}`;
@@ -64,7 +65,7 @@ export async function setSession(player: Pick<Player, "id" | "name" | "is_admin"
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30
+    maxAge: SESSION_MAX_AGE_SECONDS
   });
 }
 
