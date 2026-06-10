@@ -10,6 +10,7 @@ import { isPredictionLocked } from "@/lib/scoring";
 export default async function MyPredictionsPage() {
   const player = await requirePlayer();
   if (!player) redirect("/");
+  if (player.is_admin) redirect("/admin/spiele?filter=faellig");
   const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
 

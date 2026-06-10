@@ -29,12 +29,14 @@ export default async function MatchDetailPage({ params, searchParams }: { params
   const locked = isPredictionLocked(match.kickoff_at);
   const visiblePredictions = locked ? await getVisiblePredictions(id) : [];
   const predictionMap = new Map(predictions.map((item) => [item.match_id, item]));
-  const nextOpen = matches.find((item) => !predictionMap.has(item.id) && !isPredictionLocked(item.kickoff_at) && item.id !== id);
+  const nextOpen = player.is_admin ? null : matches.find((item) => !predictionMap.has(item.id) && !isPredictionLocked(item.kickoff_at) && item.id !== id);
   const guidedMode = query.mode === "tippen";
   const savedHomeScore = query.home ?? prediction?.home_score;
   const savedAwayScore = query.away ?? prediction?.away_score;
   const savedText =
-    query.saved && savedHomeScore !== undefined && savedAwayScore !== undefined
+    query.saved && guidedMode
+      ? "Tipp gespeichert."
+      : query.saved && savedHomeScore !== undefined && savedAwayScore !== undefined
       ? `Tipp gespeichert: ${teamName(match, "home")} ${savedHomeScore}:${savedAwayScore} ${teamName(match, "away")}.`
       : query.saved
         ? "Tipp gespeichert."
@@ -77,9 +79,24 @@ export default async function MatchDetailPage({ params, searchParams }: { params
           ) : null}
         </section>
 
-        <div className="mt-5">
-          <PredictionForm match={match} prediction={prediction} mode={guidedMode ? "tippen" : undefined} />
-        </div>
+        {player.is_admin ? (
+          <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
+            <h2 className="text-lg font-black">Admin-Modus</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-600">
+              Der Admin nimmt keine Tipps ab. Hier geht es direkt zur Ergebniseingabe und Auswertung.
+            </p>
+            <Link
+              href={`/admin/spiele?filter=alle#match-${match.id}`}
+              className="focus-ring mt-4 inline-flex w-full justify-center rounded-xl bg-pitch px-5 py-4 font-black text-white"
+            >
+              Ergebnis für dieses Spiel eintragen
+            </Link>
+          </section>
+        ) : (
+          <div className="mt-5">
+            <PredictionForm match={match} prediction={prediction} mode={guidedMode ? "tippen" : undefined} />
+          </div>
+        )}
 
         {!query.saved && nextOpen && !guidedMode ? (
           <Link href={`/spiele/${nextOpen.id}`} className="mt-5 block rounded-xl bg-white p-4 font-bold text-pitch shadow-card">

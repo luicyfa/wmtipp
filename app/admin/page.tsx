@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
 import { requireAdmin } from "@/lib/auth";
 import { getMatches, getPlayers } from "@/lib/data";
+import { formatDateTime } from "@/lib/dates";
 import { getRankings } from "@/lib/rankings";
 
 export default async function AdminPage() {
@@ -10,6 +12,14 @@ export default async function AdminPage() {
   if (!admin) redirect("/dashboard?error=keine-adminrechte");
   const [players, matches, rankings] = await Promise.all([getPlayers(true), getMatches(), getRankings()]);
   const finished = matches.filter((match) => match.status === "finished").length;
+  const now = new Date();
+  const dueResults = matches
+    .filter((match) => {
+      const kickoff = new Date(match.kickoff_at);
+      return kickoff <= now && (match.status !== "finished" || match.home_score === null || match.away_score === null);
+    })
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+  const nextDueResult = dueResults[0] ?? null;
 
   return (
     <>
@@ -17,6 +27,38 @@ export default async function AdminPage() {
       <main className="mx-auto max-w-5xl px-4 py-6">
         <AdminNav />
         <h1 className="text-3xl font-black">Admin-Dashboard</h1>
+        <section className="mt-5 rounded-2xl bg-ink p-5 text-white shadow-card">
+          <p className="text-sm font-black uppercase text-white/65">Turnierleitung</p>
+          <h2 className="mt-2 text-3xl font-black">
+            {dueResults.length ? `${dueResults.length} Ergebnisse fehlen` : "Alles aktuell"}
+          </h2>
+          {nextDueResult ? (
+            <>
+              <p className="mt-3 text-white/75">
+                Als nächstes: <strong>{nextDueResult.home_team?.name ?? nextDueResult.home_team_label}</strong> gegen{" "}
+                <strong>{nextDueResult.away_team?.name ?? nextDueResult.away_team_label}</strong>
+                {" · "}
+                {formatDateTime(nextDueResult.kickoff_at)}
+              </p>
+              <Link
+                href={`/admin/spiele?filter=faellig#match-${nextDueResult.id}`}
+                className="focus-ring mt-5 inline-flex w-full justify-center rounded-xl bg-sun px-5 py-4 text-center font-black text-amber-950 sm:w-auto"
+              >
+                Nächstes Ergebnis eintragen
+              </Link>
+            </>
+          ) : (
+            <p className="mt-3 text-white/75">Aktuell wartet kein begonnenes Spiel auf ein Ergebnis.</p>
+          )}
+        </section>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <Link href="/admin/spiele?filter=faellig" className="focus-ring rounded-xl bg-pitch px-5 py-4 text-center font-black text-white shadow-card">
+            Ergebnisse verwalten
+          </Link>
+          <Link href="/admin/teilnehmer" className="focus-ring rounded-xl bg-white px-5 py-4 text-center font-black text-pitch shadow-card">
+            Teilnehmer verwalten
+          </Link>
+        </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-white p-4 shadow-card"><p>Teilnehmer</p><strong className="text-3xl">{players.length}</strong></div>
           <div className="rounded-xl bg-white p-4 shadow-card"><p>Spiele</p><strong className="text-3xl">{matches.length}</strong></div>
