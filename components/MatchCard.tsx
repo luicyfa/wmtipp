@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, ChevronRight, MapPin } from "lucide-react";
+import { CalendarDays, ChevronRight, Eye, MapPin } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
@@ -44,6 +44,12 @@ export function MatchCard({ match, prediction }: { match: Match; prediction?: Pr
           <strong>{result ?? "Offen"}</strong>
         </div>
       </div>
+      {locked ? (
+        <p className="mt-3 inline-flex items-center gap-1 rounded-full bg-pitch/10 px-3 py-1 text-xs font-black text-pitch">
+          <Eye className="h-3.5 w-3.5" />
+          Familien-Tipps ansehen
+        </p>
+      ) : null}
     </Link>
   );
 }

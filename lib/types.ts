@@ -57,7 +57,7 @@ export type Prediction = {
   locked_at: string | null;
   created_at: string;
   updated_at: string;
-  player?: Pick<Player, "id" | "name"> | null;
+  player?: Pick<Player, "id" | "name" | "is_admin" | "is_active"> | null;
 };
 
 export type BonusPrediction = {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Trophy } from "lucide-react";
 import { PredictionForm } from "@/components/PredictionForm";
 import { AppHeader } from "@/components/AppHeader";
 import { FeedbackToast } from "@/components/FeedbackToast";
@@ -42,6 +43,7 @@ export default async function MatchDetailPage({ params, searchParams }: { params
         ? "Tipp gespeichert."
         : null;
   const deadlineError = "Dieses Spiel hat schon begonnen. Dein Tipp ist jetzt gesperrt.";
+  const hasResult = match.status === "finished" && match.home_score !== null && match.away_score !== null;
 
   return (
     <>
@@ -111,19 +113,67 @@ export default async function MatchDetailPage({ params, searchParams }: { params
           </section>
         ) : null}
 
-        {locked ? (
-          <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
-            <h2 className="mb-3 font-black">Tipps der Familie</h2>
-            <div className="space-y-2">
-              {visiblePredictions.map((item) => (
-                <div key={item.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="font-bold">{item.player?.name}</span>
-                  <span>{item.home_score}:{item.away_score}</span>
-                </div>
-              ))}
+        <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-black">Tipps der Familie</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">
+                {locked
+                  ? hasResult
+                    ? "Alle Tipps und Punkte auf einen Blick."
+                    : "Das Spiel hat begonnen. Jetzt darf gemeinsam verglichen werden."
+                  : `Bleibt geheim bis zum Anstoß: ${formatDateTime(match.kickoff_at)}.`}
+              </p>
             </div>
-          </section>
-        ) : null}
+            <span className={`rounded-full px-3 py-1 text-xs font-black ${locked ? "bg-pitch/10 text-pitch" : "bg-slate-100 text-slate-500"}`}>
+              {locked ? `${visiblePredictions.length} Tipps` : "Noch geheim"}
+            </span>
+          </div>
+          {locked ? (
+            <div className="mt-4 space-y-2">
+              {visiblePredictions.length ? visiblePredictions.map((item) => {
+                const isOwn = item.player_id === player.id;
+                const exact = hasResult && item.exact_score;
+                return (
+                  <div
+                    key={item.id}
+                    className={`grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl border px-3 py-3 ${
+                      isOwn ? "border-pitch/30 bg-pitch/10" : exact ? "border-amber-200 bg-sun/20" : "border-slate-100 bg-slate-50"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-ink">
+                        {item.player?.name ?? "Unbekannt"}
+                        {isOwn ? <span className="ml-2 rounded-full bg-pitch px-2 py-0.5 align-middle text-[10px] font-black text-white">Du</span> : null}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                        {exact ? "Exakt richtig" : hasResult && item.correct_tendency ? "Tendenz richtig" : hasResult ? "Ausgewertet" : "Wartet auf Ergebnis"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-ink">{item.home_score}:{item.away_score}</p>
+                      <p className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-black ${
+                        hasResult ? "bg-white text-pitch" : "bg-white text-slate-500"
+                      }`}>
+                        {exact ? <Trophy className="h-3 w-3 text-amber-500" /> : null}
+                        {hasResult ? `+${item.points}` : "offen"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <p className="rounded-xl bg-slate-50 px-3 py-4 text-sm font-semibold text-slate-600">
+                  Für dieses Spiel gibt es noch keine Tipps.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="mt-4 rounded-xl bg-slate-50 px-3 py-4 text-sm font-semibold text-slate-600">
+              Fair bleibt fair: Vor Spielbeginn sieht jeder nur den eigenen Tipp.
+            </p>
+          )}
+        </section>
+
       </main>
     </>
   );

@@ -74,8 +74,10 @@ export async function getVisiblePredictions(matchId: string): Promise<Prediction
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("predictions")
-    .select("*,player:players(id,name)")
+    .select("*,player:players!inner(id,name,is_admin,is_active)")
     .eq("match_id", matchId)
+    .eq("player.is_admin", false)
+    .eq("player.is_active", true)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
