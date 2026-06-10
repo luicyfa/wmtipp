@@ -56,6 +56,75 @@ button {
   position: relative;
 }
 
+.mex-nav-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(11, 93, 59, 0.12);
+  background:
+    linear-gradient(135deg, rgba(11, 93, 59, 0.08), rgba(31, 164, 99, 0.1)),
+    linear-gradient(45deg, rgba(11, 93, 59, 0.08) 25%, transparent 25%, transparent 75%, rgba(11, 93, 59, 0.08) 75%),
+    linear-gradient(45deg, rgba(15, 122, 79, 0.08) 25%, transparent 25%, transparent 75%, rgba(15, 122, 79, 0.08) 75%);
+  background-position:
+    0 0,
+    0 0,
+    11px 11px;
+  background-size:
+    auto,
+    22px 22px,
+    22px 22px;
+}
+
+.mex-nav-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.32));
+  pointer-events: none;
+}
+
+.mex-nav-shell > * {
+  position: relative;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.mex-nav-link {
+  @apply focus-ring whitespace-nowrap rounded-2xl border border-pitch/10 bg-white/70 px-4 py-2.5 text-sm font-extrabold text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-white;
+}
+
+.mex-nav-link-primary {
+  @apply focus-ring whitespace-nowrap rounded-2xl border border-amber-200/80 px-5 py-2.5 text-sm font-black text-amber-950 shadow-sm transition hover:-translate-y-0.5;
+  background:
+    linear-gradient(135deg, rgba(246, 196, 83, 0.96), rgba(255, 214, 107, 0.96)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.2) 75%);
+  background-size: auto, 18px 18px;
+}
+
+.mex-gold-panel {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.3), transparent 8rem),
+    linear-gradient(135deg, rgba(246, 196, 83, 0.98), rgba(255, 208, 92, 0.98)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.2) 75%),
+    linear-gradient(45deg, rgba(146, 92, 9, 0.08) 25%, transparent 25%, transparent 75%, rgba(146, 92, 9, 0.08) 75%);
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    11px 11px;
+  background-size:
+    auto,
+    auto,
+    22px 22px,
+    22px 22px;
+}
+
 .mex-login {
   background:
     radial-gradient(circle at 50% 10%, rgba(31, 164, 99, 0.32), transparent 18rem),

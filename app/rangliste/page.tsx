@@ -39,7 +39,7 @@ export default async function RankingPage() {
         </section>
         <section className="mt-5 grid gap-3 md:grid-cols-3">
           {topThree.map((row, index) => (
-            <div key={row.player_id} className={`rounded-xl p-4 shadow-card ${index === 0 ? "bg-sun text-amber-950 md:-mt-2" : "bg-white"}`}>
+            <div key={row.player_id} className={`rounded-xl p-4 shadow-card ${index === 0 ? "mex-gold-panel text-amber-950 md:-mt-2" : "bg-white"}`}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black uppercase tracking-wide">Platz {index + 1}</span>
                 {index === 0 ? <Trophy className="h-6 w-6" /> : <Medal className="h-6 w-6 text-pitch" />}
