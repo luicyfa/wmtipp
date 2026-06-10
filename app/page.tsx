@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Trophy } from "lucide-react";
+import Image from "next/image";
 import { loginAction } from "@/app/actions";
 import { getSession } from "@/lib/auth";
 import { getSetupStatus } from "@/lib/env";
@@ -21,8 +21,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <section className="w-full max-w-md rounded-2xl bg-white p-6 shadow-card">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-pitch text-white">
-            <Trophy className="h-8 w-8" />
+          <div className="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-[1.35rem] shadow-card ring-4 ring-white">
+            <Image
+              src="/icon.png"
+              alt="WM-Tipp App Icon"
+              width={80}
+              height={80}
+              priority
+              className="h-full w-full object-cover"
+            />
           </div>
           <h1 className="text-3xl font-black text-ink">Familien-WM-Tipp</h1>
           <p className="mt-2 text-slate-600">Einloggen mit Name und Familien-PIN.</p>
