@@ -20,6 +20,7 @@ const filters = [
 export default async function MatchesPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const player = await requirePlayer();
   if (!player) redirect("/");
+  if (player.is_admin) redirect("/admin/spiele");
   const params = await searchParams;
   const activeFilter = params.filter ?? "alle";
   const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);

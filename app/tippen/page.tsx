@@ -12,6 +12,7 @@ export default async function GuidedTipPage({
 }) {
   const player = await requirePlayer();
   if (!player) redirect("/");
+  if (player.is_admin) redirect("/admin/spiele?filter=faellig");
   const params = await searchParams;
   const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));

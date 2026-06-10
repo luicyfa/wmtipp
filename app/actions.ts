@@ -38,6 +38,7 @@ export async function loginAction(formData: FormData) {
   if (!(await verifyPin(pin, player.pin_hash))) redirect("/?error=falsche-pin");
 
   await setSession(player);
+  if (player.is_admin) redirect("/admin");
   redirect("/dashboard");
 }
 
@@ -49,6 +50,7 @@ export async function logoutAction() {
 export async function savePredictionAction(formData: FormData) {
   const player = await requirePlayer();
   if (!player) redirect("/?error=session");
+  if (player.is_admin) redirect("/admin/spiele?error=admin-tippt-nicht");
 
   const matchId = formString(formData, "matchId");
   const mode = formString(formData, "mode");
@@ -94,6 +96,7 @@ export async function savePredictionAction(formData: FormData) {
 export async function saveWorldChampionPredictionAction(formData: FormData) {
   const player = await requirePlayer();
   if (!player) redirect("/?error=session");
+  if (player.is_admin) redirect("/admin?error=admin-tippt-nicht");
 
   const teamId = formString(formData, "teamId");
   if (!teamId) redirect("/bonus?error=team-fehlt");

@@ -15,6 +15,7 @@ export default async function BonusPage({
 }) {
   const player = await requirePlayer();
   if (!player) redirect("/");
+  if (player.is_admin) redirect("/admin");
 
   const params = await searchParams;
   const [teams, prediction, matches] = await Promise.all([

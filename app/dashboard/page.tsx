@@ -12,6 +12,7 @@ import { isPredictionLocked } from "@/lib/scoring";
 export default async function DashboardPage() {
   const player = await requirePlayer();
   if (!player) redirect("/");
+  if (player.is_admin) redirect("/admin");
 
   const [matches, predictions, rankings, worldChampionPrediction] = await Promise.all([
     getMatches(),
