@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, Calendar, Medal, PlusSquare, Trophy } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle2, Medal, PlusSquare, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
 import { getGroupWinnerPredictions, getMatches, getPlayerPredictions, getWorldChampionPrediction } from "@/lib/data";
@@ -34,6 +34,38 @@ export default async function DashboardPage() {
   const nextMissing = missing[0] ?? null;
   const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
   const missingBonusTips = (worldChampionPrediction ? 0 : 1) + Math.max(0, 12 - groupWinnerPredictions.length);
+  const primaryAction = nextMissing
+    ? {
+        eyebrow: "Jetzt dran",
+        title: "Offene Tipps erledigen",
+        body: `${nextMissing.home_team?.name ?? nextMissing.home_team_label} gegen ${nextMissing.away_team?.name ?? nextMissing.away_team_label}`,
+        meta: `Noch ${missing.length} Spiele offen`,
+        href: "/tippen",
+        label: "Los tippen",
+        secondaryHref: `/spiele/${nextMissing.id}`,
+        secondaryLabel: "Nur dieses Spiel"
+      }
+    : missingBonusTips
+      ? {
+          eyebrow: "Bonus fehlt",
+          title: "Bonus-Tipps erledigen",
+          body: "Weltmeister und Gruppensieger bringen Extra-Punkte.",
+          meta: `Noch ${missingBonusTips} Bonus-Tipps offen`,
+          href: "/bonus",
+          label: "Bonus tippen",
+          secondaryHref: "/regeln",
+          secondaryLabel: "Punkte ansehen"
+        }
+      : {
+          eyebrow: "Alles erledigt",
+          title: "Du bist bereit",
+          body: "Alle aktuell möglichen Tipps sind gespeichert.",
+          meta: "Zeit für den Blick auf die Rangliste",
+          href: "/rangliste",
+          label: "Rangliste ansehen",
+          secondaryHref: "/gruppen",
+          secondaryLabel: "Gruppen ansehen"
+        };
 
   return (
     <>
@@ -57,29 +89,29 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {nextMissing ? (
-          <section className="mt-5 rounded-2xl bg-sun p-5 text-amber-950 shadow-card">
-            <span className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
-              <AlertCircle className="h-5 w-5" />
-              Jetzt dran
-            </span>
-            <h2 className="mt-2 text-3xl font-black">Jetzt offene Tipps erledigen</h2>
-            <span className="mt-3 block text-xl font-black">
-              {nextMissing.home_team?.name ?? nextMissing.home_team_label} gegen {nextMissing.away_team?.name ?? nextMissing.away_team_label}
-            </span>
-            <span className="mt-1 block text-sm font-semibold">Noch {missing.length} Spiele offen</span>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <Link href="/tippen" className="focus-ring rounded-xl bg-amber-950 px-5 py-4 text-center text-lg font-black text-white">
-                Los tippen
-              </Link>
-              <Link href={`/spiele/${nextMissing.id}`} className="focus-ring rounded-xl bg-white/70 px-4 py-3 text-center font-black text-amber-950">
-                Nur dieses Spiel
-              </Link>
-            </div>
-          </section>
-        ) : (
-          <div className="mt-5 rounded-xl bg-pitch/10 p-4 font-bold text-pitch">Alles erledigt. Du bist bereit.</div>
-        )}
+        <section className={`mt-5 rounded-2xl p-5 shadow-card ${nextMissing || missingBonusTips ? "bg-sun text-amber-950" : "bg-pitch text-white"}`}>
+          <span className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
+            {nextMissing || missingBonusTips ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+            {primaryAction.eyebrow}
+          </span>
+          <h2 className="mt-2 text-3xl font-black">{primaryAction.title}</h2>
+          <span className="mt-3 block text-xl font-black">{primaryAction.body}</span>
+          <span className="mt-1 block text-sm font-semibold">{primaryAction.meta}</span>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <Link
+              href={primaryAction.href}
+              className={`focus-ring rounded-xl px-5 py-4 text-center text-lg font-black ${nextMissing || missingBonusTips ? "bg-amber-950 text-white" : "bg-white text-pitch"}`}
+            >
+              {primaryAction.label}
+            </Link>
+            <Link
+              href={primaryAction.secondaryHref}
+              className={`focus-ring rounded-xl px-4 py-3 text-center font-black ${nextMissing || missingBonusTips ? "bg-white/70 text-amber-950" : "bg-white/10 text-white"}`}
+            >
+              {primaryAction.secondaryLabel}
+            </Link>
+          </div>
+        </section>
 
         <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
           <h2 className="flex items-center gap-2 text-xl font-black">

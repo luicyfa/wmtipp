@@ -22,6 +22,24 @@ function formNumber(formData: FormData, key: string) {
   return value;
 }
 
+function redirectWithResult(returnTo: string, result: string, hash?: string | null) {
+  const separator = returnTo.includes("?") ? "&" : "?";
+  redirect(`${returnTo}${separator}result=${result}${hash ? `#${hash}` : ""}`);
+}
+
+async function nextDueResultHash() {
+  const now = new Date();
+  const matches = await getMatches();
+  const nextDue = matches
+    .filter((match) => {
+      const kickoff = new Date(match.kickoff_at);
+      return kickoff <= now && (match.status !== "finished" || match.home_score === null || match.away_score === null);
+    })
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0];
+
+  return nextDue ? `match-${nextDue.id}` : null;
+}
+
 export async function loginAction(formData: FormData) {
   const name = formString(formData, "name");
   const pin = formString(formData, "pin");
@@ -209,7 +227,8 @@ export async function saveResultAction(formData: FormData) {
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
   revalidatePath(`/spiele/${matchId}`);
-  redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}result=saved`);
+  const nextHash = returnTo.includes("filter=faellig") ? await nextDueResultHash() : null;
+  redirectWithResult(returnTo, "saved", nextHash);
 }
 
 export async function recalculateMatchAction(formData: FormData) {
@@ -222,7 +241,8 @@ export async function recalculateMatchAction(formData: FormData) {
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
-  redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}result=recalculated`);
+  const nextHash = returnTo.includes("filter=faellig") ? await nextDueResultHash() : null;
+  redirectWithResult(returnTo, "recalculated", nextHash);
 }
 
 async function recalculateMatch(matchId: string) {

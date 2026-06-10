@@ -135,22 +135,18 @@ export default async function BonusPage({
                 Pro richtigem Gruppensieger gibt es 2 Punkte. Jeder Tipp ist bis zum ersten Spiel der jeweiligen Gruppe möglich.
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-pitch px-3 py-1 text-sm font-black text-white">
-              {12 - missingGroupTips}/12
-            </span>
+            <span className="shrink-0 rounded-full bg-pitch px-3 py-1 text-sm font-black text-white">{12 - missingGroupTips}/12</span>
           </div>
 
-          {missingGroupTips ? (
-            <div className="mt-4 rounded-xl bg-sun/30 p-3 text-sm font-bold text-amber-950">
-              Dir fehlen noch {missingGroupTips} Gruppensieger-Tipps.
+          <div className={`mt-4 rounded-xl p-3 text-sm font-bold ${missingGroupTips ? "bg-sun/30 text-amber-950" : "bg-pitch/10 text-pitch"}`}>
+            {missingGroupTips ? `Dir fehlen noch ${missingGroupTips} Gruppensieger-Tipps.` : "Alle Gruppensieger sind getippt."}
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/70">
+              <div className="h-full rounded-full bg-pitch" style={{ width: `${Math.round(((12 - missingGroupTips) / 12) * 100)}%` }} />
             </div>
-          ) : (
-            <div className="mt-4 rounded-xl bg-pitch/10 p-3 text-sm font-bold text-pitch">
-              Alle Gruppensieger sind getippt.
-            </div>
-          )}
+          </div>
 
-          <form action={saveGroupWinnerPredictionsAction} className="mt-4 space-y-3">
+          <form action={saveGroupWinnerPredictionsAction} className="mt-4">
+            <div className="grid gap-2 sm:grid-cols-2">
             {groupCodes.map((groupCode) => {
               const teamsForGroup = groupTeams.get(groupCode) ?? [];
               const currentPrediction = groupPredictionMap.get(groupCode);
@@ -160,7 +156,7 @@ export default async function BonusPage({
               const groupLocked = firstGroupKickoff ? isPredictionLocked(firstGroupKickoff) : false;
 
               return (
-                <article key={groupCode} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <article key={groupCode} className={`rounded-xl border p-3 ${currentPrediction ? "border-pitch/20 bg-pitch/5" : "border-slate-100 bg-slate-50"}`}>
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div>
                       <h3 className="font-black">Gruppe {groupCode}</h3>
@@ -180,7 +176,7 @@ export default async function BonusPage({
                     name={`group_${groupCode}`}
                     defaultValue={currentPrediction?.team_id ?? ""}
                     disabled={groupLocked}
-                    className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-4 py-4 font-semibold disabled:bg-slate-100"
+                    className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3 py-3 font-semibold disabled:bg-slate-100"
                   >
                     <option value="">Gruppensieger auswählen</option>
                     {teamsForGroup.map((team) => (
@@ -192,7 +188,8 @@ export default async function BonusPage({
                 </article>
               );
             })}
-            <button className="focus-ring w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
+            </div>
+            <button className="focus-ring mt-4 w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
               Gruppensieger speichern
             </button>
           </form>
