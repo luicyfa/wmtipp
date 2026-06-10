@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(15, 122, 79, 0.12), transparent 28rem),
+    linear-gradient(180deg, #f8faf7 0%, #eef5f0 100%);
+  color: #172033;
+}
+
+input,
+select,
+button,
+textarea {
+  font: inherit;
+}
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-pitch focus:ring-offset-2;
+}

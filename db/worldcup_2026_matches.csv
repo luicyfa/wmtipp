@@ -1,0 +1,105 @@
+match_number,round,group_code,home_team_label,away_team_label,kickoff_at,venue
+1,Gruppenphase,A,Mexiko,Südafrika,2026-06-11T21:00:00+02:00,Mexico City
+2,Gruppenphase,A,Südkorea,Tschechien,2026-06-12T04:00:00+02:00,Guadalajara
+3,Gruppenphase,B,Kanada,Bosnien/Herzeg.,2026-06-12T21:00:00+02:00,Toronto
+4,Gruppenphase,D,USA,Paraguay,2026-06-13T03:00:00+02:00,Los Angeles
+5,Gruppenphase,C,Haiti,Schottland,2026-06-14T03:00:00+02:00,Boston
+6,Gruppenphase,D,Australien,Türkei,2026-06-14T06:00:00+02:00,Vancouver
+7,Gruppenphase,C,Brasilien,Marokko,2026-06-14T00:00:00+02:00,New York/New Jersey
+8,Gruppenphase,B,Katar,Schweiz,2026-06-13T21:00:00+02:00,San Francisco Bay Area
+9,Gruppenphase,E,Elfenbeinküste,Ecuador,2026-06-15T01:00:00+02:00,Philadelphia
+10,Gruppenphase,E,Deutschland,Curaçao,2026-06-14T19:00:00+02:00,Houston
+11,Gruppenphase,F,Niederlande,Japan,2026-06-14T22:00:00+02:00,Dallas
+12,Gruppenphase,F,Schweden,Tunesien,2026-06-15T04:00:00+02:00,Monterrey
+13,Gruppenphase,H,Saudi-Arabien,Uruguay,2026-06-16T00:00:00+02:00,Miami
+14,Gruppenphase,H,Spanien,Kap Verde,2026-06-15T18:00:00+02:00,Atlanta
+15,Gruppenphase,G,IR Iran,Neuseeland,2026-06-16T03:00:00+02:00,Los Angeles
+16,Gruppenphase,G,Belgien,Ägypten,2026-06-15T21:00:00+02:00,Seattle
+17,Gruppenphase,I,Frankreich,Senegal,2026-06-16T21:00:00+02:00,New York/New Jersey
+18,Gruppenphase,I,Irak,Norwegen,2026-06-17T00:00:00+02:00,Boston
+19,Gruppenphase,J,Argentinien,Algerien,2026-06-17T03:00:00+02:00,Kansas City
+20,Gruppenphase,J,Österreich,Jordanien,2026-06-17T06:00:00+02:00,San Francisco Bay Area
+21,Gruppenphase,L,Ghana,Panama,2026-06-18T01:00:00+02:00,Toronto
+22,Gruppenphase,L,England,Kroatien,2026-06-17T22:00:00+02:00,Dallas
+23,Gruppenphase,K,Portugal,DR Kongo,2026-06-17T19:00:00+02:00,Houston
+24,Gruppenphase,K,Usbekistan,Kolumbien,2026-06-18T04:00:00+02:00,Mexico City
+25,Gruppenphase,A,Tschechien,Südafrika,2026-06-18T18:00:00+02:00,Atlanta
+26,Gruppenphase,B,Schweiz,Bosnien/Herzeg.,2026-06-18T21:00:00+02:00,Los Angeles
+27,Gruppenphase,B,Kanada,Katar,2026-06-19T00:00:00+02:00,Vancouver
+28,Gruppenphase,A,Mexiko,Südkorea,2026-06-19T03:00:00+02:00,Guadalajara
+29,Gruppenphase,C,Brasilien,Haiti,2026-06-20T02:30:00+02:00,Philadelphia
+30,Gruppenphase,C,Schottland,Marokko,2026-06-20T00:00:00+02:00,Boston
+31,Gruppenphase,D,Türkei,Paraguay,2026-06-20T05:00:00+02:00,San Francisco Bay Area
+32,Gruppenphase,D,USA,Australien,2026-06-19T21:00:00+02:00,Seattle
+33,Gruppenphase,E,Deutschland,Elfenbeinküste,2026-06-20T22:00:00+02:00,Toronto
+34,Gruppenphase,E,Ecuador,Curaçao,2026-06-21T02:00:00+02:00,Kansas City
+35,Gruppenphase,F,Niederlande,Schweden,2026-06-20T19:00:00+02:00,Houston
+36,Gruppenphase,F,Tunesien,Japan,2026-06-21T06:00:00+02:00,Monterrey
+37,Gruppenphase,H,Uruguay,Kap Verde,2026-06-22T00:00:00+02:00,Miami
+38,Gruppenphase,H,Spanien,Saudi-Arabien,2026-06-21T18:00:00+02:00,Atlanta
+39,Gruppenphase,G,Belgien,IR Iran,2026-06-21T21:00:00+02:00,Los Angeles
+40,Gruppenphase,G,Neuseeland,Ägypten,2026-06-22T03:00:00+02:00,Vancouver
+41,Gruppenphase,I,Norwegen,Senegal,2026-06-23T02:00:00+02:00,New York/New Jersey
+42,Gruppenphase,I,Frankreich,Irak,2026-06-22T23:00:00+02:00,Philadelphia
+43,Gruppenphase,J,Argentinien,Österreich,2026-06-22T19:00:00+02:00,Dallas
+44,Gruppenphase,J,Jordanien,Algerien,2026-06-23T05:00:00+02:00,San Francisco Bay Area
+45,Gruppenphase,L,England,Ghana,2026-06-23T22:00:00+02:00,Boston
+46,Gruppenphase,L,Panama,Kroatien,2026-06-24T01:00:00+02:00,Toronto
+47,Gruppenphase,K,Portugal,Usbekistan,2026-06-23T19:00:00+02:00,Houston
+48,Gruppenphase,K,Kolumbien,DR Kongo,2026-06-24T04:00:00+02:00,Guadalajara
+49,Gruppenphase,C,Schottland,Brasilien,2026-06-25T00:00:00+02:00,Miami
+50,Gruppenphase,C,Marokko,Haiti,2026-06-25T00:00:00+02:00,Atlanta
+51,Gruppenphase,B,Schweiz,Kanada,2026-06-24T21:00:00+02:00,Vancouver
+52,Gruppenphase,B,Bosnien/Herzeg.,Katar,2026-06-24T21:00:00+02:00,Seattle
+53,Gruppenphase,A,Tschechien,Mexiko,2026-06-25T03:00:00+02:00,Mexico City
+54,Gruppenphase,A,Südafrika,Südkorea,2026-06-25T03:00:00+02:00,Monterrey
+55,Gruppenphase,E,Curaçao,Elfenbeinküste,2026-06-25T22:00:00+02:00,Philadelphia
+56,Gruppenphase,E,Ecuador,Deutschland,2026-06-25T22:00:00+02:00,New York/New Jersey
+57,Gruppenphase,F,Japan,Schweden,2026-06-26T01:00:00+02:00,Dallas
+58,Gruppenphase,F,Tunesien,Niederlande,2026-06-26T01:00:00+02:00,Kansas City
+59,Gruppenphase,D,Türkei,USA,2026-06-26T04:00:00+02:00,Los Angeles
+60,Gruppenphase,D,Paraguay,Australien,2026-06-26T04:00:00+02:00,San Francisco Bay Area
+61,Gruppenphase,I,Norwegen,Frankreich,2026-06-26T21:00:00+02:00,Boston
+62,Gruppenphase,I,Senegal,Irak,2026-06-26T21:00:00+02:00,Toronto
+63,Gruppenphase,G,Ägypten,IR Iran,2026-06-27T05:00:00+02:00,Seattle
+64,Gruppenphase,G,Neuseeland,Belgien,2026-06-27T05:00:00+02:00,Vancouver
+65,Gruppenphase,H,Kap Verde,Saudi-Arabien,2026-06-27T02:00:00+02:00,Houston
+66,Gruppenphase,H,Uruguay,Spanien,2026-06-27T02:00:00+02:00,Guadalajara
+67,Gruppenphase,L,Panama,England,2026-06-27T23:00:00+02:00,New York/New Jersey
+68,Gruppenphase,L,Kroatien,Ghana,2026-06-27T23:00:00+02:00,Philadelphia
+69,Gruppenphase,J,Algerien,Österreich,2026-06-28T04:00:00+02:00,Kansas City
+70,Gruppenphase,J,Jordanien,Argentinien,2026-06-28T04:00:00+02:00,Dallas
+71,Gruppenphase,K,Kolumbien,Portugal,2026-06-28T01:30:00+02:00,Miami
+72,Gruppenphase,K,DR Kongo,Usbekistan,2026-06-28T01:30:00+02:00,Atlanta
+73,Sechzehntelfinale,,2A,2B,2026-06-28T21:00:00+02:00,Los Angeles
+74,Sechzehntelfinale,,1E,3-ABCDF,2026-06-29T22:30:00+02:00,Boston
+75,Sechzehntelfinale,,1F,2C,2026-06-30T03:00:00+02:00,Monterrey
+76,Sechzehntelfinale,,1C,2F,2026-06-29T19:00:00+02:00,Houston
+77,Sechzehntelfinale,,1I,3-CDFGH,2026-06-30T23:00:00+02:00,New York/New Jersey
+78,Sechzehntelfinale,,2E,2I,2026-06-30T19:00:00+02:00,Dallas
+79,Sechzehntelfinale,,1A,3-CEFHI,2026-07-01T03:00:00+02:00,Mexico City
+80,Sechzehntelfinale,,1L,3-EHIJK,2026-07-01T18:00:00+02:00,Atlanta
+81,Sechzehntelfinale,,1D,3-BEFIJ,2026-07-02T02:00:00+02:00,San Francisco Bay Area
+82,Sechzehntelfinale,,1G,3-AEHIJ,2026-07-01T22:00:00+02:00,Seattle
+83,Sechzehntelfinale,,2K,2L,2026-07-03T01:00:00+02:00,Toronto
+84,Sechzehntelfinale,,1H,2J,2026-07-02T21:00:00+02:00,Los Angeles
+85,Sechzehntelfinale,,1B,3-EFGIJ,2026-07-03T05:00:00+02:00,Vancouver
+86,Sechzehntelfinale,,1J,2H,2026-07-04T00:00:00+02:00,Miami
+87,Sechzehntelfinale,,1K,3-DEIJL,2026-07-04T03:30:00+02:00,Kansas City
+88,Sechzehntelfinale,,2D,2G,2026-07-03T20:00:00+02:00,Dallas
+89,Achtelfinale,,W74,W77,2026-07-04T23:00:00+02:00,Philadelphia
+90,Achtelfinale,,W73,W75,2026-07-04T19:00:00+02:00,Houston
+91,Achtelfinale,,W76,W78,2026-07-05T22:00:00+02:00,New York/New Jersey
+92,Achtelfinale,,W79,W80,2026-07-06T02:00:00+02:00,Mexico City
+93,Achtelfinale,,W83,W84,2026-07-06T21:00:00+02:00,Dallas
+94,Achtelfinale,,W81,W82,2026-07-07T02:00:00+02:00,Seattle
+95,Achtelfinale,,W86,W88,2026-07-07T18:00:00+02:00,Atlanta
+96,Achtelfinale,,W85,W87,2026-07-07T22:00:00+02:00,Vancouver
+97,Viertelfinale,,W89,W90,2026-07-09T22:00:00+02:00,Boston
+98,Viertelfinale,,W93,W94,2026-07-10T21:00:00+02:00,Los Angeles
+99,Viertelfinale,,W91,W92,2026-07-11T23:00:00+02:00,Miami
+100,Viertelfinale,,W95,W96,2026-07-12T03:00:00+02:00,Kansas City
+101,Halbfinale,,W97,W98,2026-07-14T21:00:00+02:00,Dallas
+102,Halbfinale,,W99,W100,2026-07-15T21:00:00+02:00,Atlanta
+103,Spiel um Platz 3,,RU101,RU102,2026-07-18T23:00:00+02:00,Miami
+104,Finale,,W101,W102,2026-07-19T21:00:00+02:00,New York/New Jersey

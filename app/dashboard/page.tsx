@@ -1,0 +1,114 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { AlertCircle, Calendar, Medal, PlusSquare } from "lucide-react";
+import { AppHeader } from "@/components/AppHeader";
+import { MatchCard } from "@/components/MatchCard";
+import { getMatches, getPlayerPredictions } from "@/lib/data";
+import { requirePlayer } from "@/lib/auth";
+import { getRankings, rankForPlayer } from "@/lib/rankings";
+import { addDays, startOfLocalDay } from "@/lib/dates";
+import { isPredictionLocked } from "@/lib/scoring";
+
+export default async function DashboardPage() {
+  const player = await requirePlayer();
+  if (!player) redirect("/");
+
+  const [matches, predictions, rankings] = await Promise.all([
+    getMatches(),
+    getPlayerPredictions(player.id),
+    getRankings()
+  ]);
+  const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
+  const today = startOfLocalDay();
+  const tomorrow = addDays(today, 1);
+  const todaysMatches = matches.filter((match) => {
+    const kickoff = new Date(match.kickoff_at);
+    return kickoff >= today && kickoff < tomorrow;
+  });
+  const missing = matches.filter((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at));
+  const rank = rankForPlayer(rankings, player.id);
+  const own = rankings.find((row) => row.player_id === player.id);
+  const nextMissing = missing[0] ?? null;
+  const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
+
+  return (
+    <>
+      <AppHeader player={player} />
+      <main className="mx-auto max-w-5xl px-4 py-6">
+        <section className="rounded-2xl bg-ink p-5 text-white shadow-card">
+          <p className="text-sm font-semibold text-white/70">Hallo {player.name}</p>
+          <h1 className="mt-1 text-3xl font-black">Dein WM-Stand</h1>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-white/10 p-4"><p className="text-sm">Rang</p><strong className="text-3xl">{rank ?? "-"}</strong></div>
+            <div className="rounded-xl bg-white/10 p-4"><p className="text-sm">Punkte</p><strong className="text-3xl">{own?.total_points ?? 0}</strong></div>
+          </div>
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between text-sm font-semibold text-white/75">
+              <span>{matches.length - missing.length} von {matches.length} Spielen erledigt</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-sun" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        </section>
+
+        {nextMissing ? (
+          <section className="mt-5 rounded-2xl bg-sun p-5 text-amber-950 shadow-card">
+            <span className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
+              <AlertCircle className="h-5 w-5" />
+              Jetzt dran
+            </span>
+            <h2 className="mt-2 text-3xl font-black">Jetzt offene Tipps erledigen</h2>
+            <span className="mt-3 block text-xl font-black">
+              {nextMissing.home_team?.name ?? nextMissing.home_team_label} gegen {nextMissing.away_team?.name ?? nextMissing.away_team_label}
+            </span>
+            <span className="mt-1 block text-sm font-semibold">Noch {missing.length} Spiele offen</span>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <Link href="/tippen" className="focus-ring rounded-xl bg-amber-950 px-5 py-4 text-center text-lg font-black text-white">
+                Los tippen
+              </Link>
+              <Link href={`/spiele/${nextMissing.id}`} className="focus-ring rounded-xl bg-white/70 px-4 py-3 text-center font-black text-amber-950">
+                Nur dieses Spiel
+              </Link>
+            </div>
+          </section>
+        ) : (
+          <div className="mt-5 rounded-xl bg-pitch/10 p-4 font-bold text-pitch">Alles erledigt. Du bist bereit.</div>
+        )}
+
+        <section className="mt-6">
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Calendar className="h-5 w-5 text-pitch" />Heutige Spiele</h2>
+          {todaysMatches.length ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {todaysMatches.map((match) => (
+                <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl bg-white p-4 text-slate-600 shadow-card">Heute stehen keine Spiele an.</div>
+          )}
+        </section>
+
+        <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Medal className="h-5 w-5 text-sun" />Top 5</h2>
+          <div className="space-y-2">
+            {rankings.slice(0, 5).map((row, index) => (
+              <div key={row.player_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                <span className="font-bold">{index < 3 ? `Top ${index + 1}` : `${index + 1}.`} {row.name}</span>
+                <span>{row.total_points} Punkte</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
+          <h2 className="flex items-center gap-2 font-black"><PlusSquare className="h-5 w-5 text-pitch" />Auf dem iPhone speichern</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            In Safari teilen und „Zum Home-Bildschirm“ wählen. Danach startet das Tippspiel wie eine kleine App.
+          </p>
+        </section>
+      </main>
+    </>
+  );
+}
