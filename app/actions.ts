@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import Papa from "papaparse";
 import { clearSession, hashPin, requireAdmin, requirePlayer, setSession, validatePin, verifyPin } from "@/lib/auth";
@@ -99,6 +99,7 @@ export async function savePredictionAction(formData: FormData) {
   revalidatePath(`/spiele/${matchId}`);
   revalidatePath("/meine-tipps");
   revalidatePath("/dashboard");
+  revalidateTag("rankings");
   const savedQuery = `saved=1&home=${homeScore}&away=${awayScore}`;
 
   if (mode === "tippen") {
@@ -142,6 +143,7 @@ export async function saveWorldChampionPredictionAction(formData: FormData) {
 
   revalidatePath("/bonus");
   revalidatePath("/dashboard");
+  revalidateTag("rankings");
   redirect("/bonus?saved=1");
 }
 
@@ -196,6 +198,7 @@ export async function saveGroupWinnerPredictionsAction(formData: FormData) {
 
   revalidatePath("/bonus");
   revalidatePath("/dashboard");
+  revalidateTag("rankings");
   redirect("/bonus?saved=groups");
 }
 
@@ -221,8 +224,10 @@ export async function saveResultAction(formData: FormData) {
     .eq("id", matchId);
   if (error) throw error;
 
+  revalidateTag("matches");
   await recalculateMatch(matchId);
   await evaluateCompletedGroupWinnerBonuses();
+  revalidateTag("rankings");
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
@@ -238,6 +243,8 @@ export async function recalculateMatchAction(formData: FormData) {
   const returnTo = formString(formData, "returnTo") || "/admin/spiele";
   await recalculateMatch(matchId);
   await evaluateCompletedGroupWinnerBonuses();
+  revalidateTag("matches");
+  revalidateTag("rankings");
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
@@ -325,6 +332,7 @@ export async function createPlayerAction(formData: FormData) {
     is_admin: isAdmin
   });
   if (error) throw error;
+  revalidateTag("rankings");
   revalidatePath("/admin/teilnehmer");
 }
 
@@ -348,6 +356,7 @@ export async function updatePlayerAction(formData: FormData) {
   const supabase = createServerSupabaseClient();
   const { error } = await supabase.from("players").update(patch).eq("id", id);
   if (error) throw error;
+  revalidateTag("rankings");
   revalidatePath("/admin/teilnehmer");
 }
 
@@ -376,6 +385,8 @@ export async function importMatchesAction(formData: FormData) {
   const supabase = createServerSupabaseClient();
   const { error } = await supabase.from("matches").upsert(rows, { onConflict: "match_number" });
   if (error) throw error;
+  revalidateTag("matches");
+  revalidateTag("rankings");
   revalidatePath("/admin/import");
   revalidatePath("/spiele");
 }

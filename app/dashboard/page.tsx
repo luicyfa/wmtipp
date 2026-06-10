@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AlertCircle, Calendar, CheckCircle2, Medal, PlusSquare, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
-import { getGroupWinnerPredictions, getMatches, getPlayerPredictions, getWorldChampionPrediction } from "@/lib/data";
+import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer } from "@/lib/rankings";
 import { addDays, startOfLocalDay } from "@/lib/dates";
@@ -14,12 +14,11 @@ export default async function DashboardPage() {
   if (!player) redirect("/");
   if (player.is_admin) redirect("/admin");
 
-  const [matches, predictions, rankings, worldChampionPrediction, groupWinnerPredictions] = await Promise.all([
+  const [matches, predictions, rankings, bonusPredictions] = await Promise.all([
     getMatches(),
     getPlayerPredictions(player.id),
     getRankings(),
-    getWorldChampionPrediction(player.id),
-    getGroupWinnerPredictions(player.id)
+    getBonusPredictions(player.id)
   ]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
@@ -33,6 +32,8 @@ export default async function DashboardPage() {
   const own = rankings.find((row) => row.player_id === player.id);
   const nextMissing = missing[0] ?? null;
   const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
+  const worldChampionPrediction = bonusPredictions.find((item) => item.type === "world_champion") ?? null;
+  const groupWinnerPredictions = bonusPredictions.filter((item) => item.type.startsWith("group_winner_"));
   const missingBonusTips = (worldChampionPrediction ? 0 : 1) + Math.max(0, 12 - groupWinnerPredictions.length);
   const primaryAction = nextMissing
     ? {

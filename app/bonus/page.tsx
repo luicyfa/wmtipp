@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { FeedbackToast } from "@/components/FeedbackToast";
 import { saveGroupWinnerPredictionsAction, saveWorldChampionPredictionAction } from "@/app/actions";
 import { requirePlayer } from "@/lib/auth";
-import { getGroupWinnerPredictions, getMatches, getTeams, getWorldChampionPrediction } from "@/lib/data";
+import { getBonusPredictions, getMatches, getTeams } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 
@@ -20,12 +20,13 @@ export default async function BonusPage({
   if (player.is_admin) redirect("/admin");
 
   const params = await searchParams;
-  const [teams, prediction, groupWinnerPredictions, matches] = await Promise.all([
+  const [teams, bonusPredictions, matches] = await Promise.all([
     getTeams(),
-    getWorldChampionPrediction(player.id),
-    getGroupWinnerPredictions(player.id),
+    getBonusPredictions(player.id),
     getMatches()
   ]);
+  const prediction = bonusPredictions.find((item) => item.type === "world_champion") ?? null;
+  const groupWinnerPredictions = bonusPredictions.filter((item) => item.type.startsWith("group_winner_"));
   const firstKickoff = matches[0]?.kickoff_at;
   const locked = firstKickoff ? isPredictionLocked(firstKickoff) : false;
   const groupPredictionMap = new Map(

@@ -1,8 +1,9 @@
+import { unstable_cache } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { defaultScoreRules } from "@/lib/scoring";
 import type { BonusPrediction, Match, Player, Prediction, ScoreRules, Team } from "@/lib/types";
 
-export async function getScoreRules(): Promise<ScoreRules> {
+const getCachedScoreRules = unstable_cache(async (): Promise<ScoreRules> => {
   const supabase = createServerSupabaseClient();
   const { data } = await supabase
     .from("score_rules")
@@ -12,9 +13,13 @@ export async function getScoreRules(): Promise<ScoreRules> {
     .maybeSingle();
 
   return (data as ScoreRules | null) ?? defaultScoreRules;
+}, ["score-rules"], { tags: ["score-rules"], revalidate: 60 * 60 });
+
+export async function getScoreRules(): Promise<ScoreRules> {
+  return getCachedScoreRules();
 }
 
-export async function getMatches(): Promise<Match[]> {
+const getCachedMatches = unstable_cache(async (): Promise<Match[]> => {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("matches")
@@ -23,6 +28,10 @@ export async function getMatches(): Promise<Match[]> {
 
   if (error) throw error;
   return (data ?? []) as Match[];
+}, ["matches"], { tags: ["matches"], revalidate: 60 * 10 });
+
+export async function getMatches(): Promise<Match[]> {
+  return getCachedMatches();
 }
 
 export async function getMatch(id: string): Promise<Match> {
@@ -82,7 +91,7 @@ export async function getPlayers(includeInactive = false): Promise<Player[]> {
   return (data ?? []) as Player[];
 }
 
-export async function getTeams(): Promise<Team[]> {
+const getCachedTeams = unstable_cache(async (): Promise<Team[]> => {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("teams")
@@ -92,6 +101,10 @@ export async function getTeams(): Promise<Team[]> {
 
   if (error) throw error;
   return (data ?? []) as Team[];
+}, ["teams"], { tags: ["teams"], revalidate: 60 * 60 });
+
+export async function getTeams(): Promise<Team[]> {
+  return getCachedTeams();
 }
 
 export async function getWorldChampionPrediction(playerId: string): Promise<BonusPrediction | null> {
@@ -105,6 +118,18 @@ export async function getWorldChampionPrediction(playerId: string): Promise<Bonu
 
   if (error) throw error;
   return data as BonusPrediction | null;
+}
+
+export async function getBonusPredictions(playerId: string): Promise<BonusPrediction[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("bonus_predictions")
+    .select("*,team:teams(id,name,short_name)")
+    .eq("player_id", playerId)
+    .order("type", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as BonusPrediction[];
 }
 
 export async function getGroupWinnerPredictions(playerId: string): Promise<BonusPrediction[]> {
