@@ -51,12 +51,15 @@ export default async function AdminPage() {
             <p className="mt-3 text-white/75">Aktuell wartet kein begonnenes Spiel auf ein Ergebnis.</p>
           )}
         </section>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Link href="/admin/spiele?filter=faellig" className="focus-ring rounded-xl bg-pitch px-5 py-4 text-center font-black text-white shadow-card">
             Ergebnisse verwalten
           </Link>
           <Link href="/admin/teilnehmer" className="focus-ring rounded-xl bg-white px-5 py-4 text-center font-black text-pitch shadow-card">
             Teilnehmer verwalten
+          </Link>
+          <Link href="/admin/bonus" className="focus-ring rounded-xl bg-white px-5 py-4 text-center font-black text-pitch shadow-card">
+            Bonus auswerten
           </Link>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">

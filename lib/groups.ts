@@ -42,8 +42,20 @@ function emptyStanding(groupCode: string, teamNameValue: string): GroupStanding 
   };
 }
 
-function sortStandings(a: GroupStanding, b: GroupStanding) {
+function sortStandings(a: GroupStanding, b: GroupStanding, matchesForGroup: Match[] = []) {
   if (b.points !== a.points) return b.points - a.points;
+  const directDuel = matchesForGroup.find((match) => {
+    if (match.status !== "finished" || match.home_score === null || match.away_score === null) return false;
+    const home = teamName(match, "home");
+    const away = teamName(match, "away");
+    return (home === a.teamName && away === b.teamName) || (home === b.teamName && away === a.teamName);
+  });
+  if (directDuel && directDuel.home_score !== null && directDuel.away_score !== null) {
+    const home = teamName(directDuel, "home");
+    const aGoals = home === a.teamName ? directDuel.home_score : directDuel.away_score;
+    const bGoals = home === b.teamName ? directDuel.home_score : directDuel.away_score;
+    if (aGoals !== bGoals) return bGoals - aGoals;
+  }
   if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
   if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
   return a.teamName.localeCompare(b.teamName, "de");
@@ -101,7 +113,7 @@ export function buildGroupTables(matches: Match[]): GroupTable[] {
 
       return {
         groupCode,
-        standings: Array.from(standings.values()).sort(sortStandings),
+        standings: Array.from(standings.values()).sort((a, b) => sortStandings(a, b, matchesForGroup)),
         matches: matchesForGroup,
         finishedMatches: matchesForGroup.filter((match) => match.status === "finished").length,
         totalMatches: matchesForGroup.length
@@ -113,6 +125,5 @@ export function bestThirdPlacedTeams(groups: GroupTable[]) {
   return groups
     .map((group) => group.standings[2])
     .filter(Boolean)
-    .sort(sortStandings);
+    .sort((a, b) => sortStandings(a, b));
 }
-

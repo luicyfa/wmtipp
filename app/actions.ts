@@ -202,6 +202,55 @@ export async function saveGroupWinnerPredictionsAction(formData: FormData) {
   redirect("/bonus?saved=groups");
 }
 
+export async function evaluateWorldChampionAction(formData: FormData) {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/dashboard?error=keine-adminrechte");
+
+  const teamId = formString(formData, "teamId");
+  if (!teamId) redirect("/admin/bonus?error=team-fehlt");
+
+  const supabase = createServerSupabaseClient();
+  const { data: predictions, error } = await supabase
+    .from("bonus_predictions")
+    .select("id,team_id")
+    .eq("type", "world_champion");
+  if (error) throw error;
+
+  for (const prediction of predictions ?? []) {
+    await supabase
+      .from("bonus_predictions")
+      .update({
+        points: prediction.team_id === teamId ? 10 : 0,
+        locked_at: new Date().toISOString()
+      })
+      .eq("id", prediction.id);
+  }
+
+  revalidateTag("rankings");
+  revalidatePath("/admin/bonus");
+  revalidatePath("/rangliste");
+  revalidatePath("/dashboard");
+  redirect("/admin/bonus?result=world-champion-evaluated");
+}
+
+export async function resetWorldChampionEvaluationAction() {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/dashboard?error=keine-adminrechte");
+
+  const supabase = createServerSupabaseClient();
+  const { error } = await supabase
+    .from("bonus_predictions")
+    .update({ points: 0, locked_at: null })
+    .eq("type", "world_champion");
+  if (error) throw error;
+
+  revalidateTag("rankings");
+  revalidatePath("/admin/bonus");
+  revalidatePath("/rangliste");
+  revalidatePath("/dashboard");
+  redirect("/admin/bonus?result=world-champion-reset");
+}
+
 export async function saveResultAction(formData: FormData) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");

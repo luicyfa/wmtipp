@@ -26,6 +26,13 @@ export default async function GroupsPage() {
           </p>
         </section>
 
+        <section className="mt-5 rounded-xl bg-sun/25 p-4 text-amber-950 shadow-card">
+          <h2 className="font-black">Stand jetzt</h2>
+          <p className="mt-2 text-sm font-semibold">
+            Die Tabellen zeigen eine Live-Prognose nach den bisher eingetragenen Ergebnissen. Sortiert wird nach Punkten, direktem Duell bei Zweier-Gleichstand, Tordifferenz, erzielten Toren und Name. Extrem enge FIFA-Sonderfälle mit mehreren punktgleichen Teams sollten am Ende kurz manuell geprüft werden.
+          </p>
+        </section>
+
         <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
           <h2 className="text-xl font-black">Beste Gruppendritte</h2>
           <p className="mt-1 text-sm text-slate-600">Vorläufige Übersicht nach aktuellem Tabellenstand.</p>
