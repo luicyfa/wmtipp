@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
 import { FeedbackToast } from "@/components/FeedbackToast";
+import { SubmitButton } from "@/components/SubmitButton";
 import { saveResultAction, recalculateMatchAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getMatches } from "@/lib/data";
@@ -143,9 +144,9 @@ export default async function AdminMatchesPage({
                 className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold"
               />
             </label>
-            <button className="focus-ring rounded-xl bg-ink px-5 py-3 font-bold text-white sm:self-end">
+            <SubmitButton pendingText="Sucht..." className="focus-ring rounded-xl bg-ink px-5 py-3 font-bold text-white sm:self-end">
               Suchen
-            </button>
+            </SubmitButton>
           </form>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
             {filters.map(([key, label]) => (
@@ -192,14 +193,14 @@ export default async function AdminMatchesPage({
                   <option value="live">Gesperrt</option>
                   <option value="finished">Beendet</option>
                 </select>
-                <button className="focus-ring rounded-xl bg-pitch px-4 py-5 font-black text-white">
+                <SubmitButton pendingText="Speichert..." className="focus-ring rounded-xl bg-pitch px-4 py-5 font-black text-white">
                   {activeFilter === "faellig" ? "Speichern & nächstes" : "Ergebnis speichern"}
-                </button>
+                </SubmitButton>
               </form>
               <form action={recalculateMatchAction} className="mt-2">
                 <input type="hidden" name="matchId" value={match.id} />
                 <input type="hidden" name="returnTo" value={returnTo} />
-                <button className="text-sm font-bold text-pitch">Punkte für dieses Spiel neu berechnen</button>
+                <SubmitButton pendingText="Berechnet..." className="text-sm font-bold text-pitch">Punkte für dieses Spiel neu berechnen</SubmitButton>
               </form>
             </div>
           )) : (

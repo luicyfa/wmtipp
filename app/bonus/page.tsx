@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { CheckCircle2, ListChecks, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { FeedbackToast } from "@/components/FeedbackToast";
+import { SubmitButton } from "@/components/SubmitButton";
 import { saveGroupWinnerPredictionsAction, saveWorldChampionPredictionAction } from "@/app/actions";
 import { requirePlayer } from "@/lib/auth";
 import { getBonusPredictions, getMatches, getTeams } from "@/lib/data";
@@ -110,12 +111,13 @@ export default async function BonusPage({
               ))}
             </select>
           </label>
-          <button
+          <SubmitButton
             disabled={locked}
+            pendingText="Speichert..."
             className="focus-ring mt-4 w-full rounded-xl bg-pitch px-5 py-4 font-black text-white disabled:bg-slate-300"
           >
             Weltmeister-Tipp speichern
-          </button>
+          </SubmitButton>
           <p className="mt-3 text-sm text-slate-600">
             {locked
               ? "Die WM hat begonnen, der Bonus-Tipp ist gesperrt."
@@ -190,9 +192,9 @@ export default async function BonusPage({
               );
             })}
             </div>
-            <button className="focus-ring mt-4 w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
+            <SubmitButton pendingText="Speichert..." className="focus-ring mt-4 w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
               Gruppensieger speichern
-            </button>
+            </SubmitButton>
           </form>
         </section>
       </main>

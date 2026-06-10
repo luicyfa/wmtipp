@@ -3,6 +3,7 @@ import { RotateCcw, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
 import { FeedbackToast } from "@/components/FeedbackToast";
+import { SubmitButton } from "@/components/SubmitButton";
 import { evaluateWorldChampionAction, resetWorldChampionEvaluationAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getTeams } from "@/lib/data";
@@ -87,20 +88,20 @@ export default async function AdminBonusPage({
               ))}
             </select>
           </label>
-          <button className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pitch px-5 py-4 font-black text-white">
+          <SubmitButton pendingText="Wertet aus..." className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pitch px-5 py-4 font-black text-white">
             <Trophy className="h-5 w-5" />
             Weltmeister auswerten
-          </button>
+          </SubmitButton>
         </form>
 
         <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-black">Abgegebene Weltmeister-Tipps</h2>
             <form action={resetWorldChampionEvaluationAction}>
-              <button className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
+              <SubmitButton pendingText="Setzt zurück..." className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
                 <RotateCcw className="h-4 w-4" />
                 Zurücksetzen
-              </button>
+              </SubmitButton>
             </form>
           </div>
           <div className="mt-4 divide-y divide-slate-100">

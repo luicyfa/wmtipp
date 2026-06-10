@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { loginAction } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { getSession } from "@/lib/auth";
 import { getSetupStatus } from "@/lib/env";
 
@@ -51,7 +52,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             PIN
             <input name="pin" type="password" inputMode="numeric" autoComplete="current-password" className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-4" placeholder="1234" />
           </label>
-          <button disabled={!setup.isReady} className="focus-ring w-full rounded-xl bg-pitch px-5 py-4 font-black text-white disabled:bg-slate-300">Einloggen</button>
+          <SubmitButton disabled={!setup.isReady} pendingText="Einloggen..." className="focus-ring w-full rounded-xl bg-pitch px-5 py-4 font-black text-white">
+            Einloggen
+          </SubmitButton>
         </form>
       </section>
     </main>

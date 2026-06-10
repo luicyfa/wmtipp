@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createPlayerAction, updatePlayerAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getPlayers } from "@/lib/data";
@@ -20,7 +21,7 @@ export default async function AdminPlayersPage() {
           <input name="name" placeholder="Name" className="focus-ring rounded-xl border border-slate-200 px-4 py-3" />
           <input name="pin" placeholder="PIN" inputMode="numeric" className="focus-ring rounded-xl border border-slate-200 px-4 py-3" />
           <label className="flex items-center gap-2 font-semibold"><input name="isAdmin" type="checkbox" /> Admin</label>
-          <button className="focus-ring rounded-xl bg-pitch px-4 py-3 font-bold text-white">Anlegen</button>
+          <SubmitButton pendingText="Legt an..." className="focus-ring rounded-xl bg-pitch px-4 py-3 font-bold text-white">Anlegen</SubmitButton>
         </form>
 
         <div className="mt-5 space-y-3">
@@ -31,7 +32,7 @@ export default async function AdminPlayersPage() {
               <input name="pin" placeholder="Neue PIN" inputMode="numeric" className="focus-ring rounded-xl border border-slate-200 px-4 py-3" />
               <label className="flex items-center gap-2 font-semibold"><input name="isAdmin" type="checkbox" defaultChecked={player.is_admin} /> Admin</label>
               <label className="flex items-center gap-2 font-semibold"><input name="isActive" type="checkbox" defaultChecked={player.is_active} /> Aktiv</label>
-              <button className="focus-ring rounded-xl bg-ink px-4 py-3 font-bold text-white">Speichern</button>
+              <SubmitButton pendingText="Speichert..." className="focus-ring rounded-xl bg-ink px-4 py-3 font-bold text-white">Speichern</SubmitButton>
             </form>
           ))}
         </div>

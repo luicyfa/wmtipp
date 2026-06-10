@@ -1,6 +1,7 @@
 import { Save } from "lucide-react";
 import { savePredictionAction } from "@/app/actions";
 import { ScoreStepper } from "@/components/ScoreStepper";
+import { SubmitButton } from "@/components/SubmitButton";
 import { formatDateTime } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Match, Prediction } from "@/lib/types";
@@ -36,13 +37,14 @@ export function PredictionForm({
         <span className="pb-4 text-2xl font-black text-slate-400">:</span>
         <ScoreStepper name="awayScore" label={awayLabel} defaultValue={prediction?.away_score ?? 0} disabled={locked} />
       </div>
-      <button
+      <SubmitButton
         disabled={locked}
+        pendingText={mode ? "Speichert & weiter..." : "Speichert..."}
         className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pitch px-5 py-4 font-bold text-white disabled:bg-slate-300"
       >
         <Save className="h-5 w-5" />
         Tipp speichern
-      </button>
+      </SubmitButton>
     </form>
   );
 }
