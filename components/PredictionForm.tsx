@@ -23,14 +23,19 @@ export function PredictionForm({
   const locked = isPredictionLocked(match.kickoff_at);
   const homeLabel = teamLabel(match, "home");
   const awayLabel = teamLabel(match, "away");
+  const hasPrediction = prediction !== null;
 
   return (
     <form action={savePredictionAction} className="rounded-xl bg-white p-4 shadow-card">
       <input type="hidden" name="matchId" value={match.id} />
       {mode ? <input type="hidden" name="mode" value={mode} /> : null}
-      <h2 className="text-lg font-bold">Dein Tipp</h2>
+      <h2 className="text-lg font-bold">{hasPrediction && !locked ? "Deinen Tipp ändern" : "Dein Tipp"}</h2>
       <p className="mt-1 text-sm text-slate-600">
-        {locked ? "Spiel hat begonnen - Tipp ist gesperrt." : `Tipp möglich bis: ${formatDateTime(match.kickoff_at)}`}
+        {locked
+          ? "Spiel hat begonnen - Tipp ist gesperrt."
+          : hasPrediction
+            ? `Du kannst deinen Tipp noch bis ${formatDateTime(match.kickoff_at)} ändern.`
+            : `Tipp möglich bis: ${formatDateTime(match.kickoff_at)}`}
       </p>
       <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-end gap-3">
         <ScoreStepper name="homeScore" label={homeLabel} defaultValue={prediction?.home_score ?? 0} disabled={locked} />
@@ -43,7 +48,7 @@ export function PredictionForm({
         className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pitch px-5 py-4 font-bold text-white disabled:bg-slate-300"
       >
         <Save className="h-5 w-5" />
-        Tipp speichern
+        {hasPrediction && !locked ? "Änderung speichern" : "Tipp speichern"}
       </SubmitButton>
     </form>
   );
