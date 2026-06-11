@@ -162,9 +162,23 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
-          <h2 className="flex items-center gap-2 font-black"><PlusSquare className="h-5 w-5 text-pitch" />Auf dem iPhone speichern</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            In Safari teilen und „Zum Home-Bildschirm“ wählen. Danach startet das Tippspiel wie eine kleine App.
+          <h2 className="flex items-center gap-2 font-black"><PlusSquare className="h-5 w-5 text-pitch" />Als App speichern</h2>
+          <div className="mt-3 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+            <div className="rounded-xl bg-pitch/10 p-3">
+              <p className="font-black text-pitch">iPhone</p>
+              <p className="mt-1 font-semibold">
+                In Safari oder Chrome teilen, dann „Zum Home-Bildschirm“ auswählen und „Hinzufügen“ tippen.
+              </p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-3">
+              <p className="font-black text-ink">Android</p>
+              <p className="mt-1 font-semibold">
+                In Chrome oben rechts auf die drei Punkte tippen, dann „Zum Startbildschirm hinzufügen“ auswählen.
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs font-semibold text-slate-500">
+            Danach startet das Tippspiel direkt vom Handy-Startbildschirm.
           </p>
         </section>
       </main>
