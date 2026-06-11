@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const primaryAction = nextMissing
     ? {
         eyebrow: "Jetzt dran",
-        title: "Offene Tipps erledigen",
+        title: "Noch zu tippen",
         body: `${nextMissing.home_team?.name ?? nextMissing.home_team_label} gegen ${nextMissing.away_team?.name ?? nextMissing.away_team_label}`,
         meta: `Noch ${missing.length} Spiele offen`,
         href: "/tippen",
