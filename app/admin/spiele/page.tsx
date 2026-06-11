@@ -32,6 +32,12 @@ function includesQuery(value: string | null | undefined, query: string) {
   return value?.toLowerCase().includes(query) ?? false;
 }
 
+function teamName(match: Awaited<ReturnType<typeof getMatches>>[number], side: "home" | "away") {
+  const team = side === "home" ? match.home_team : match.away_team;
+  const label = side === "home" ? match.home_team_label : match.away_team_label;
+  return team?.name ?? label ?? "Offen";
+}
+
 export default async function AdminMatchesPage({
   searchParams
 }: {
@@ -84,7 +90,9 @@ export default async function AdminMatchesPage({
   const returnTo = `/admin/spiele?filter=${activeFilter}${querySuffix}`;
   const feedback =
     params.result === "saved"
-      ? "Alles klar, Ergebnis gespeichert und Punkte neu berechnet."
+      ? nextMissingResult
+        ? `Ergebnis gespeichert, Punkte berechnet. Nächstes fälliges Spiel: ${teamName(nextMissingResult, "home")} gegen ${teamName(nextMissingResult, "away")}.`
+        : "Alles klar, Ergebnis gespeichert und Punkte neu berechnet. Aktuell wartet kein weiteres Ergebnis."
       : params.result === "recalculated"
         ? "Fertig, die Punkte für dieses Spiel sind frisch berechnet."
         : null;
@@ -115,7 +123,9 @@ export default async function AdminMatchesPage({
           <h2 className="mt-1 text-2xl font-black">
             {missingResults.length ? `${missingResults.length} Spiele warten aufs Ergebnis` : "Alles erledigt"}
           </h2>
-          <p className="mt-2 text-sm font-semibold">Standardmäßig siehst du nur Spiele, die schon begonnen haben und noch ein Ergebnis brauchen.</p>
+          <p className="mt-2 text-sm font-semibold">
+            Standardmäßig siehst du nur Spiele, die schon begonnen haben und noch ein Ergebnis brauchen. Fällige Spiele werden direkt als beendet gespeichert.
+          </p>
           {nextMissingResult ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <Link href={`/admin/spiele?filter=faellig#match-${nextMissingResult.id}`} className="focus-ring rounded-xl bg-amber-950 px-4 py-3 text-center font-black text-white">
@@ -169,7 +179,7 @@ export default async function AdminMatchesPage({
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase text-pitch">Spiel {match.match_number ?? "-"} · {formatDateTime(match.kickoff_at)}</p>
-                  <h2 className="text-lg font-black">{match.home_team?.name ?? match.home_team_label} gegen {match.away_team?.name ?? match.away_team_label}</h2>
+                  <h2 className="text-lg font-black">{teamName(match, "home")} gegen {teamName(match, "away")}</h2>
                   <p className="mt-1 text-sm text-slate-600">{match.venue}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
@@ -188,7 +198,11 @@ export default async function AdminMatchesPage({
                   Auswärtstore
                   <input name="awayScore" type="number" min="0" defaultValue={match.away_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
                 </label>
-                <select name="status" defaultValue={match.status} className="focus-ring rounded-xl border border-slate-200 px-4 py-4 font-semibold">
+                <select
+                  name="status"
+                  defaultValue={activeFilter === "faellig" && match.status !== "finished" ? "finished" : match.status}
+                  className="focus-ring rounded-xl border border-slate-200 px-4 py-4 font-semibold"
+                >
                   <option value="scheduled">Offen</option>
                   <option value="live">Gesperrt</option>
                   <option value="finished">Beendet</option>

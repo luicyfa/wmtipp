@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Papa from "papaparse";
 import { clearSession, hashPin, requireAdmin, requirePlayer, setSession, validatePin, verifyPin } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getMatch, getMatches, getPlayerPredictions, getScoreRules } from "@/lib/data";
+import { getMatch, getMatches, getPlayerPredictions, getPrediction, getScoreRules } from "@/lib/data";
 import { buildGroupTables } from "@/lib/groups";
 import { calculatePredictionPoints, isPredictionLocked } from "@/lib/scoring";
 
@@ -81,6 +81,7 @@ export async function savePredictionAction(formData: FormData) {
     redirect(`/spiele/${matchId}?error=tippfrist-abgelaufen`);
   }
 
+  const existingPrediction = await getPrediction(player.id, matchId);
   const supabase = createServerSupabaseClient();
   const { error } = await supabase.from("predictions").upsert(
     {
@@ -100,7 +101,7 @@ export async function savePredictionAction(formData: FormData) {
   revalidatePath("/meine-tipps");
   revalidatePath("/dashboard");
   revalidateTag("rankings");
-  const savedQuery = `saved=1&home=${homeScore}&away=${awayScore}`;
+  const savedQuery = `saved=1&home=${homeScore}&away=${awayScore}${existingPrediction ? "&changed=1" : ""}`;
 
   if (mode === "tippen") {
     const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);

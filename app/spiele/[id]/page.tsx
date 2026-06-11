@@ -10,13 +10,51 @@ import { getMatch, getMatches, getPlayerPredictions, getPrediction, getVisiblePr
 import { formatDateTime } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 
-function teamName(match: Awaited<ReturnType<typeof getMatch>>, side: "home" | "away") {
+type MatchForName = Awaited<ReturnType<typeof getMatch>>;
+type VisiblePrediction = Awaited<ReturnType<typeof getVisiblePredictions>>[number];
+
+function teamName(match: MatchForName, side: "home" | "away") {
   const team = side === "home" ? match.home_team : match.away_team;
   const label = side === "home" ? match.home_team_label : match.away_team_label;
   return team?.name ?? label ?? "Offen";
 }
 
-export default async function MatchDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; mode?: string; home?: string; away?: string }> }) {
+function tendencyLabel(homeScore: number, awayScore: number, match: MatchForName) {
+  if (homeScore > awayScore) return `${teamName(match, "home")} gewinnt`;
+  if (homeScore < awayScore) return `${teamName(match, "away")} gewinnt`;
+  return "Unentschieden";
+}
+
+function familyTipHighlights(predictions: VisiblePrediction[], match: MatchForName, hasResult: boolean) {
+  if (!predictions.length) return [];
+
+  if (hasResult) {
+    const exactNames = predictions.filter((item) => item.exact_score).map((item) => item.player?.name ?? "Jemand");
+    const tendencyCount = predictions.filter((item) => item.correct_tendency).length;
+    const resultLabel = tendencyLabel(match.home_score ?? 0, match.away_score ?? 0, match);
+    const highlights = [];
+
+    if (exactNames.length === 1) highlights.push(`${exactNames[0]} lag exakt richtig.`);
+    if (exactNames.length > 1) highlights.push(`${exactNames.join(", ")} lagen exakt richtig.`);
+    if (!exactNames.length) highlights.push("Niemand hatte das exakte Ergebnis.");
+    if (tendencyCount > 0) highlights.push(`${tendencyCount} ${tendencyCount === 1 ? "Person hatte" : "Personen hatten"} die richtige Tendenz: ${resultLabel}.`);
+
+    return highlights;
+  }
+
+  const homeWins = predictions.filter((item) => item.home_score > item.away_score).length;
+  const draws = predictions.filter((item) => item.home_score === item.away_score).length;
+  const awayWins = predictions.filter((item) => item.home_score < item.away_score).length;
+  const counts = [
+    { count: homeWins, label: `${teamName(match, "home")} gewinnt` },
+    { count: draws, label: "Unentschieden" },
+    { count: awayWins, label: `${teamName(match, "away")} gewinnt` }
+  ].filter((item) => item.count > 0).sort((a, b) => b.count - a.count);
+
+  return counts.map((item) => `${item.count} ${item.count === 1 ? "Tipp sagt" : "Tipps sagen"}: ${item.label}.`);
+}
+
+export default async function MatchDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; mode?: string; home?: string; away?: string; changed?: string }> }) {
   const player = await requirePlayer();
   if (!player) redirect("/");
   const { id } = await params;
@@ -34,16 +72,18 @@ export default async function MatchDetailPage({ params, searchParams }: { params
   const guidedMode = query.mode === "tippen";
   const savedHomeScore = query.home ?? prediction?.home_score;
   const savedAwayScore = query.away ?? prediction?.away_score;
+  const savedPrefix = query.changed ? "Dein Tipp wurde geändert" : "Tipp gespeichert";
   const savedText =
     query.saved && guidedMode
-      ? "Tipp gespeichert."
+      ? query.changed ? "Tipp geändert." : "Tipp gespeichert."
       : query.saved && savedHomeScore !== undefined && savedAwayScore !== undefined
-      ? `Tipp gespeichert: ${teamName(match, "home")} ${savedHomeScore}:${savedAwayScore} ${teamName(match, "away")}.`
+      ? `${savedPrefix}: ${teamName(match, "home")} ${savedHomeScore}:${savedAwayScore} ${teamName(match, "away")}.`
       : query.saved
-        ? "Tipp gespeichert."
+        ? `${savedPrefix}.`
         : null;
   const deadlineError = "Dieses Spiel hat schon begonnen. Dein Tipp ist jetzt gesperrt.";
   const hasResult = match.status === "finished" && match.home_score !== null && match.away_score !== null;
+  const tipHighlights = locked ? familyTipHighlights(visiblePredictions, match, hasResult) : [];
 
   return (
     <>
@@ -131,6 +171,13 @@ export default async function MatchDetailPage({ params, searchParams }: { params
           </div>
           {locked ? (
             <div className="mt-4 space-y-2">
+              {tipHighlights.length ? (
+                <div className="space-y-2 rounded-xl bg-pitch/10 p-3 text-sm font-bold text-pitch">
+                  {tipHighlights.map((highlight) => (
+                    <p key={highlight}>{highlight}</p>
+                  ))}
+                </div>
+              ) : null}
               {visiblePredictions.length ? visiblePredictions.map((item) => {
                 const isOwn = item.player_id === player.id;
                 const exact = hasResult && item.exact_score;
