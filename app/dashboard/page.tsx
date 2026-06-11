@@ -178,7 +178,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-3 text-xs font-semibold text-slate-500">
-            Danach startet das Tippspiel direkt vom Handy-Startbildschirm. Bei Problemen einfach Henry anrufen ;)
+            Danach startet das Tippspiel direkt vom Handy-Startbildschirm. Bei Problemen einfach Henry anrufen 😉
           </p>
         </section>
       </main>
