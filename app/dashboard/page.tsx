@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-5">
             <div className="mb-2 flex items-center justify-between text-sm font-semibold text-white/75">
-              <span>{matches.length - missing.length} von {matches.length} Spielen erledigt</span>
+              <span>{matches.length - missing.length} von {matches.length} Spielen getippt</span>
               <span>{progress}%</span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-white/15">
