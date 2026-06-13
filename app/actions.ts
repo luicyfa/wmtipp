@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import Papa from "papaparse";
 import { clearSession, hashPin, requireAdmin, requirePlayer, setSession, validatePin, verifyPin } from "@/lib/auth";
+import { isBonusLockedForPlayer } from "@/lib/bonus-locks";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMatch, getMatches, getPlayerPredictions, getPrediction } from "@/lib/data";
 import { evaluateCompletedGroupWinnerBonuses, recalculateMatch } from "@/lib/results";
@@ -124,7 +125,7 @@ export async function saveWorldChampionPredictionAction(formData: FormData) {
 
   const matches = await getMatches();
   const firstKickoff = matches[0]?.kickoff_at;
-  if (firstKickoff && isPredictionLocked(firstKickoff)) {
+  if (firstKickoff && isBonusLockedForPlayer(firstKickoff, player)) {
     redirect("/bonus?error=bonus-gesperrt");
   }
 
@@ -172,7 +173,7 @@ export async function saveGroupWinnerPredictionsAction(formData: FormData) {
       .filter((match) => match.group_code === groupCode)
       .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0]?.kickoff_at;
 
-    if (firstGroupKickoff && isPredictionLocked(firstGroupKickoff)) {
+    if (firstGroupKickoff && isBonusLockedForPlayer(firstGroupKickoff, player)) {
       redirect(`/bonus?error=gruppe-gesperrt&group=${groupCode}`);
     }
 

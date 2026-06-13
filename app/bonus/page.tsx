@@ -5,9 +5,9 @@ import { FeedbackToast } from "@/components/FeedbackToast";
 import { SubmitButton } from "@/components/SubmitButton";
 import { saveGroupWinnerPredictionsAction, saveWorldChampionPredictionAction } from "@/app/actions";
 import { requirePlayer } from "@/lib/auth";
+import { hasTodayBonusOverride, isBonusLockedForPlayer } from "@/lib/bonus-locks";
 import { getBonusPredictions, getMatches, getTeams } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
-import { isPredictionLocked } from "@/lib/scoring";
 
 const groupCodes = "ABCDEFGHIJKL".split("");
 
@@ -29,7 +29,8 @@ export default async function BonusPage({
   const prediction = bonusPredictions.find((item) => item.type === "world_champion") ?? null;
   const groupWinnerPredictions = bonusPredictions.filter((item) => item.type.startsWith("group_winner_"));
   const firstKickoff = matches[0]?.kickoff_at;
-  const locked = firstKickoff ? isPredictionLocked(firstKickoff) : false;
+  const bonusOverrideOpen = hasTodayBonusOverride(player);
+  const locked = firstKickoff ? isBonusLockedForPlayer(firstKickoff, player) : false;
   const groupPredictionMap = new Map(
     groupWinnerPredictions.map((item) => [item.type.replace("group_winner_", ""), item])
   );
@@ -66,6 +67,11 @@ export default async function BonusPage({
           <p className="mt-3 text-white/75">
             Tipp den Weltmeister und die Gruppensieger. Das sind Extra-Punkte, aber die normalen Spieltipps bleiben der Hauptteil.
           </p>
+          {bonusOverrideOpen ? (
+            <p className="mt-4 rounded-xl bg-white/15 px-4 py-3 text-sm font-bold text-white">
+              Bonus heute nochmal offen: Bitte bis 23:59 Uhr speichern.
+            </p>
+          ) : null}
         </section>
 
         {prediction?.team ? (
@@ -156,7 +162,7 @@ export default async function BonusPage({
               const firstGroupKickoff = matches
                 .filter((match) => match.group_code === groupCode)
                 .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0]?.kickoff_at;
-              const groupLocked = firstGroupKickoff ? isPredictionLocked(firstGroupKickoff) : false;
+              const groupLocked = firstGroupKickoff ? isBonusLockedForPlayer(firstGroupKickoff, player) : false;
 
               return (
                 <article key={groupCode} className={`rounded-xl border p-3 ${currentPrediction ? "border-pitch/20 bg-pitch/5" : "border-slate-100 bg-slate-50"}`}>
