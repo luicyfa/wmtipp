@@ -8,6 +8,7 @@ import { isBonusLockedForPlayer } from "@/lib/bonus-locks";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMatch, getMatches, getPlayerPredictions, getPrediction } from "@/lib/data";
 import { evaluateCompletedGroupWinnerBonuses, recalculateMatch } from "@/lib/results";
+import { syncResultsFromFootballData } from "@/lib/result-sync";
 import { isPredictionLocked } from "@/lib/scoring";
 
 function formString(formData: FormData, key: string) {
@@ -26,6 +27,15 @@ function formNumber(formData: FormData, key: string) {
 function redirectWithResult(returnTo: string, result: string, hash?: string | null) {
   const separator = returnTo.includes("?") ? "&" : "?";
   redirect(`${returnTo}${separator}result=${result}${hash ? `#${hash}` : ""}`);
+}
+
+function redirectWithParams(returnTo: string, params: Record<string, string | number | boolean | null | undefined>) {
+  const urlParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== null && value !== undefined) urlParams.set(key, String(value));
+  }
+  const separator = returnTo.includes("?") ? "&" : "?";
+  redirect(`${returnTo}${separator}${urlParams.toString()}`);
 }
 
 async function nextDueResultHash() {
@@ -301,6 +311,31 @@ export async function recalculateMatchAction(formData: FormData) {
   revalidatePath("/dashboard");
   const nextHash = returnTo.includes("filter=faellig") ? await nextDueResultHash() : null;
   redirectWithResult(returnTo, "recalculated", nextHash);
+}
+
+export async function syncLiveResultsAction(formData: FormData) {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/dashboard?error=keine-adminrechte");
+
+  const returnTo = formString(formData, "returnTo") || "/admin";
+  const report = await syncResultsFromFootballData();
+  revalidateTag("matches");
+  revalidateTag("rankings");
+  revalidatePath("/admin");
+  revalidatePath("/admin/spiele");
+  revalidatePath("/rangliste");
+  revalidatePath("/dashboard");
+  revalidatePath("/gruppen");
+
+  redirectWithParams(returnTo, {
+    result: report.ok ? "live-sync" : "live-sync-error",
+    checked: report.checked,
+    apiFixtures: report.apiFixtures,
+    linked: report.linked,
+    updated: report.updated,
+    recalculated: report.recalculated,
+    skipped: report.skipped
+  });
 }
 
 export async function createPlayerAction(formData: FormData) {

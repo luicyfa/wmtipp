@@ -2,14 +2,30 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
+import { FeedbackToast } from "@/components/FeedbackToast";
+import { SubmitButton } from "@/components/SubmitButton";
+import { syncLiveResultsAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getMatches, getPlayers } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
 import { getRankings } from "@/lib/rankings";
 
-export default async function AdminPage() {
+function syncFeedback(params: { result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string }) {
+  if (params.result === "live-sync-error") {
+    return "Live-Abgleich hat gerade nicht geklappt. Bitte später nochmal versuchen oder Ergebnis manuell eintragen.";
+  }
+  if (params.result !== "live-sync") return null;
+  return `Live-Abgleich fertig: ${params.updated ?? "0"} Spiele aktualisiert, ${params.recalculated ?? "0"} Punkte neu berechnet, ${params.linked ?? "0"} neu verknüpft.`;
+}
+
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams: Promise<{ result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string }>;
+}) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");
+  const params = await searchParams;
   const [players, matches, rankings] = await Promise.all([getPlayers(true), getMatches(), getRankings()]);
   const finished = matches.filter((match) => match.status === "finished").length;
   const now = new Date();
@@ -24,6 +40,7 @@ export default async function AdminPage() {
   return (
     <>
       <AppHeader player={admin} />
+      <FeedbackToast message={syncFeedback(params)} tone={params.result === "live-sync-error" ? "error" : "success"} />
       <main className="mx-auto max-w-5xl px-4 py-6">
         <AdminNav />
         <h1 className="text-3xl font-black">Admin-Dashboard</h1>
@@ -51,7 +68,13 @@ export default async function AdminPage() {
             <p className="mt-3 text-white/75">Aktuell wartet kein begonnenes Spiel auf ein Ergebnis.</p>
           )}
         </section>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-4">
+          <form action={syncLiveResultsAction}>
+            <input type="hidden" name="returnTo" value="/admin" />
+            <SubmitButton pendingText="Aktualisiert..." className="focus-ring w-full rounded-xl bg-sun px-5 py-4 text-center font-black text-amber-950 shadow-card">
+              Live-Ergebnisse aktualisieren
+            </SubmitButton>
+          </form>
           <Link href="/admin/spiele?filter=faellig" className="focus-ring rounded-xl bg-pitch px-5 py-4 text-center font-black text-white shadow-card">
             Ergebnisse verwalten
           </Link>

@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
 import { FeedbackToast } from "@/components/FeedbackToast";
 import { SubmitButton } from "@/components/SubmitButton";
-import { saveResultAction, recalculateMatchAction } from "@/app/actions";
+import { saveResultAction, recalculateMatchAction, syncLiveResultsAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getMatches } from "@/lib/data";
 import { addDays, formatDateTime, startOfLocalDay } from "@/lib/dates";
@@ -41,7 +41,14 @@ function teamName(match: Awaited<ReturnType<typeof getMatches>>[number], side: "
 export default async function AdminMatchesPage({
   searchParams
 }: {
-  searchParams: Promise<{ filter?: string; q?: string; result?: string }>;
+  searchParams: Promise<{
+    filter?: string;
+    q?: string;
+    result?: string;
+    updated?: string;
+    recalculated?: string;
+    linked?: string;
+  }>;
 }) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");
@@ -95,6 +102,10 @@ export default async function AdminMatchesPage({
         : "Alles klar, Ergebnis gespeichert und Punkte neu berechnet. Aktuell wartet kein weiteres Ergebnis."
       : params.result === "recalculated"
         ? "Fertig, die Punkte für dieses Spiel sind frisch berechnet."
+        : params.result === "live-sync"
+          ? `Live-Abgleich fertig: ${params.updated ?? "0"} Spiele aktualisiert, ${params.recalculated ?? "0"} Punkte neu berechnet, ${params.linked ?? "0"} neu verknüpft.`
+          : params.result === "live-sync-error"
+            ? "Live-Abgleich hat gerade nicht geklappt. Du kannst Ergebnisse weiter manuell eintragen."
         : null;
 
   return (
@@ -124,8 +135,14 @@ export default async function AdminMatchesPage({
             {missingResults.length ? `${missingResults.length} Spiele warten aufs Ergebnis` : "Alles erledigt"}
           </h2>
           <p className="mt-2 text-sm font-semibold">
-            Standardmäßig siehst du nur Spiele, die schon begonnen haben und noch ein Ergebnis brauchen. Fällige Spiele werden direkt als beendet gespeichert.
+            Tippe auf Live-Aktualisierung, um Ergebnisse und laufende Zwischenstände von football-data.org zu holen. Manuell kannst du jederzeit korrigieren.
           </p>
+          <form action={syncLiveResultsAction} className="mt-4">
+            <input type="hidden" name="returnTo" value={returnTo} />
+            <SubmitButton pendingText="Aktualisiert..." className="focus-ring w-full rounded-xl bg-amber-950 px-4 py-3 text-center font-black text-white sm:w-auto">
+              Live-Ergebnisse aktualisieren
+            </SubmitButton>
+          </form>
           {nextMissingResult ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <Link href={`/admin/spiele?filter=faellig#match-${nextMissingResult.id}`} className="focus-ring rounded-xl bg-amber-950 px-4 py-3 text-center font-black text-white">
