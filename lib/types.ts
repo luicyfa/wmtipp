@@ -36,6 +36,9 @@ export type Match = {
   away_score: number | null;
   winner_team_id: string | null;
   penalty_winner_team_id: string | null;
+  api_football_fixture_id?: number | null;
+  last_synced_at?: string | null;
+  sync_source?: string | null;
   created_at: string;
   updated_at: string;
   home_team?: Pick<Team, "name" | "short_name"> | null;

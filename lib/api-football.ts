@@ -7,6 +7,28 @@ export type ApiFootballFixture = {
       long?: string;
       elapsed?: number | null;
     };
+    venue?: {
+      name?: string | null;
+      city?: string | null;
+    };
+  };
+  league?: {
+    id?: number;
+    name?: string;
+    season?: number;
+    round?: string;
+  };
+  teams?: {
+    home?: {
+      id?: number;
+      name?: string;
+      winner?: boolean | null;
+    };
+    away?: {
+      id?: number;
+      name?: string;
+      winner?: boolean | null;
+    };
   };
   goals?: {
     home?: number | null;
@@ -26,8 +48,45 @@ type ApiFootballResponse = {
 };
 
 const API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
+const DEFAULT_WORLD_CUP_LEAGUE_ID = 1;
+const DEFAULT_WORLD_CUP_SEASON = 2026;
 const FINISHED_STATUS = new Set(["FT", "AET", "PEN"]);
 const LIVE_STATUS = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+
+function getApiFootballConfig() {
+  return {
+    apiKey: process.env.API_FOOTBALL_KEY,
+    leagueId: Number(process.env.API_FOOTBALL_LEAGUE_ID ?? DEFAULT_WORLD_CUP_LEAGUE_ID),
+    season: Number(process.env.API_FOOTBALL_SEASON ?? DEFAULT_WORLD_CUP_SEASON)
+  };
+}
+
+async function fetchApiFootballFixtures(params: URLSearchParams) {
+  const { apiKey } = getApiFootballConfig();
+  if (!apiKey) {
+    return { fixtures: [] as ApiFootballFixture[], skippedReason: "API_FOOTBALL_KEY fehlt." };
+  }
+
+  const response = await fetch(`${API_FOOTBALL_BASE_URL}/fixtures?${params.toString()}`, {
+    headers: { "x-apisports-key": apiKey },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`API-FOOTBALL Fehler: ${response.status}`);
+  }
+
+  const payload = (await response.json()) as ApiFootballResponse;
+  if (payload.errors && Object.keys(payload.errors).length > 0) {
+    throw new Error(`API-FOOTBALL Fehler: ${JSON.stringify(payload.errors)}`);
+  }
+
+  return { fixtures: payload.response ?? [], skippedReason: null };
+}
+
+function isoDate(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
 
 export function statusFromApiFootball(shortStatus?: string) {
   if (!shortStatus) return "scheduled";
@@ -49,7 +108,7 @@ export function scoresFromApiFootball(fixture: ApiFootballFixture) {
 }
 
 export async function fetchWorldCupFixturesByIds(fixtureIds: number[]) {
-  const apiKey = process.env.API_FOOTBALL_KEY;
+  const { apiKey } = getApiFootballConfig();
   if (!apiKey) {
     return { fixtures: new Map<number, ApiFootballFixture>(), skippedReason: "API_FOOTBALL_KEY fehlt." };
   }
@@ -74,4 +133,23 @@ export async function fetchWorldCupFixturesByIds(fixtureIds: number[]) {
   }
 
   return { fixtures, skippedReason: null };
+}
+
+export async function fetchWorldCupFixturesInWindow(from: Date, to: Date) {
+  const { leagueId, season } = getApiFootballConfig();
+  const params = new URLSearchParams({
+    league: String(leagueId),
+    season: String(season),
+    from: isoDate(from),
+    to: isoDate(to),
+    timezone: "Europe/Berlin"
+  });
+
+  const { fixtures, skippedReason } = await fetchApiFootballFixtures(params);
+  return {
+    fixtures,
+    skippedReason,
+    leagueId,
+    season
+  };
 }

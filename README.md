@@ -111,9 +111,10 @@ Die App enthaelt eine vorbereitete Vercel-Cron-Route:
 - Route: `/api/cron/sync-results`
 - Zeitplan: taeglich `0 4 * * *` UTC, also waehrend der WM um 06:00 Uhr Berliner Sommerzeit
 - API-Quelle: API-FOOTBALL, sobald `API_FOOTBALL_KEY` gesetzt ist
+- Wettbewerb: `API_FOOTBALL_LEAGUE_ID=1`, `API_FOOTBALL_SEASON=2026`
 - Vercel-Cron-Requests werden ueber den User-Agent `vercel-cron/1.0` erkannt; manuelle Aufrufe brauchen `CRON_SECRET`
 
-Damit der Sync echte Spiele aktualisieren kann, muss die Migration `db/migrations/005_api_football_sync.sql` ausgefuehrt werden und pro Spiel die passende `api_football_fixture_id` in `matches` hinterlegt sein. Der Cron prueft nur Spiele im relevanten Zeitfenster von 48 Stunden zurueck bis 24 Stunden nach vorn, damit die API-Aufrufe sparsam bleiben. Ohne API-Key oder ohne Fixture-IDs aendert der Cron nichts und gibt nur einen sauberen Hinweis zurueck.
+Damit der Sync echte Spiele aktualisieren kann, muss die Migration `db/migrations/005_api_football_sync.sql` ausgefuehrt werden. Der Cron zieht API-FOOTBALL-Fixtures fuer `league=1` und `season=2026`, prueft nur Spiele im relevanten Zeitfenster von 48 Stunden zurueck bis 24 Stunden nach vorn und hinterlegt passende `api_football_fixture_id`s automatisch, wenn Heimteam, Auswaertsteam und Anstoßzeit plausibel zusammenpassen. Ohne API-Key aendert der Cron nichts und gibt nur einen sauberen Hinweis zurueck.
 
 Zum manuellen Testen:
 
