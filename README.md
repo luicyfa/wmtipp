@@ -78,7 +78,7 @@ Die Datei `/Users/bjornbochinski/Downloads/WCup_2026_4.2.6_de.xlsx` wurde mit `s
 - `db/seed.sql` mit 48 Teams und 104 Spielen
 - `db/worldcup_2026_matches.csv` fuer den Admin-CSV-Import
 
-Die Anstoßzeiten werden aus der Spalte "Date (my time)" mit explizitem `+02:00` Offset uebernommen.
+Die Anstoßzeiten werden aus der Spalte "Date (my time)" mit explizitem `+02:00` Offset uebernommen. Angezeigt wird in der App die Berliner Zeit.
 
 CSV-Import im Adminbereich erwartet:
 
@@ -98,17 +98,36 @@ Der Testlauf nutzt `node:test` direkt mit TypeScript-Stripping. Das vermeidet na
 ## Vercel Deployment
 
 1. Repository mit Vercel verbinden.
-2. Die vier ENV-Variablen aus `.env.example` in Vercel setzen.
+2. Die ENV-Variablen aus `.env.example` in Vercel setzen.
 3. Supabase-Migration und Seed vorher ausfuehren.
 4. Deploy starten.
 
 Wichtig: `SUPABASE_SERVICE_ROLE_KEY` wird ausschliesslich serverseitig verwendet und darf nicht als `NEXT_PUBLIC_*` Variable gesetzt werden.
+
+## Ergebnis-Sync per Cron
+
+Die App enthaelt eine vorbereitete Vercel-Cron-Route:
+
+- Route: `/api/cron/sync-results`
+- Zeitplan: taeglich `0 4 * * *` UTC, also waehrend der WM um 06:00 Uhr Berliner Sommerzeit
+- API-Quelle: API-FOOTBALL, sobald `API_FOOTBALL_KEY` gesetzt ist
+- Vercel-Cron-Requests werden ueber den User-Agent `vercel-cron/1.0` erkannt; manuelle Aufrufe brauchen `CRON_SECRET`
+
+Damit der Sync echte Spiele aktualisieren kann, muss die Migration `db/migrations/005_api_football_sync.sql` ausgefuehrt werden und pro Spiel die passende `api_football_fixture_id` in `matches` hinterlegt sein. Der Cron prueft nur Spiele im relevanten Zeitfenster von 48 Stunden zurueck bis 24 Stunden nach vorn, damit die API-Aufrufe sparsam bleiben. Ohne API-Key oder ohne Fixture-IDs aendert der Cron nichts und gibt nur einen sauberen Hinweis zurueck.
+
+Zum manuellen Testen:
+
+```bash
+curl -H "Authorization: Bearer <CRON_SECRET>" https://deine-domain.de/api/cron/sync-results
+```
 
 ## Wichtige Dateien
 
 - `app/actions.ts`: Server Actions fuer Auth, Tipps, Admin und Import
 - `lib/auth.ts`: PIN-Hashing und Session-Cookie
 - `lib/scoring.ts`: zentrale Punkteberechnung
+- `lib/results.ts`: gemeinsame Ergebnis- und Bonusauswertung
+- `lib/result-sync.ts`: vorbereiteter Ergebnis-Sync via API-FOOTBALL
 - `lib/rankings.ts`: Ranglistenabruf ueber Supabase-RPC
 - `db/migrations/001_initial_schema.sql`: Datenbankschema
 - `db/seed.sql`: Startdaten aus dem Excel-Spielplan
