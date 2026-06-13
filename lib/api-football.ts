@@ -47,7 +47,7 @@ type ApiFootballResponse = {
   errors?: unknown;
 };
 
-const API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
+const DEFAULT_API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
 const DEFAULT_WORLD_CUP_LEAGUE_ID = 1;
 const DEFAULT_WORLD_CUP_SEASON = 2026;
 const FINISHED_STATUS = new Set(["FT", "AET", "PEN"]);
@@ -56,29 +56,36 @@ const LIVE_STATUS = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "
 function getApiFootballConfig() {
   return {
     apiKey: process.env.API_FOOTBALL_KEY,
+    baseUrl: process.env.API_FOOTBALL_BASE_URL ?? DEFAULT_API_FOOTBALL_BASE_URL,
     leagueId: Number(process.env.API_FOOTBALL_LEAGUE_ID ?? DEFAULT_WORLD_CUP_LEAGUE_ID),
     season: Number(process.env.API_FOOTBALL_SEASON ?? DEFAULT_WORLD_CUP_SEASON)
   };
 }
 
 async function fetchApiFootballFixtures(params: URLSearchParams) {
-  const { apiKey } = getApiFootballConfig();
+  const { apiKey, baseUrl } = getApiFootballConfig();
   if (!apiKey) {
     return { fixtures: [] as ApiFootballFixture[], skippedReason: "API_FOOTBALL_KEY fehlt." };
   }
 
-  const response = await fetch(`${API_FOOTBALL_BASE_URL}/fixtures?${params.toString()}`, {
+  const response = await fetch(`${baseUrl}/fixtures?${params.toString()}`, {
     headers: { "x-apisports-key": apiKey },
     cache: "no-store"
   });
 
+  const payload = (await response.json()) as ApiFootballResponse;
   if (!response.ok) {
-    throw new Error(`API-FOOTBALL Fehler: ${response.status}`);
+    return {
+      fixtures: [] as ApiFootballFixture[],
+      skippedReason: `API-FOOTBALL Fehler ${response.status}: ${JSON.stringify(payload.errors ?? {})}`
+    };
   }
 
-  const payload = (await response.json()) as ApiFootballResponse;
   if (payload.errors && Object.keys(payload.errors).length > 0) {
-    throw new Error(`API-FOOTBALL Fehler: ${JSON.stringify(payload.errors)}`);
+    return {
+      fixtures: [] as ApiFootballFixture[],
+      skippedReason: `API-FOOTBALL Fehler: ${JSON.stringify(payload.errors)}`
+    };
   }
 
   return { fixtures: payload.response ?? [], skippedReason: null };
@@ -108,7 +115,7 @@ export function scoresFromApiFootball(fixture: ApiFootballFixture) {
 }
 
 export async function fetchWorldCupFixturesByIds(fixtureIds: number[]) {
-  const { apiKey } = getApiFootballConfig();
+  const { apiKey, baseUrl } = getApiFootballConfig();
   if (!apiKey) {
     return { fixtures: new Map<number, ApiFootballFixture>(), skippedReason: "API_FOOTBALL_KEY fehlt." };
   }
@@ -116,7 +123,7 @@ export async function fetchWorldCupFixturesByIds(fixtureIds: number[]) {
   const fixtures = new Map<number, ApiFootballFixture>();
 
   for (const fixtureId of fixtureIds) {
-    const response = await fetch(`${API_FOOTBALL_BASE_URL}/fixtures?id=${fixtureId}`, {
+    const response = await fetch(`${baseUrl}/fixtures?id=${fixtureId}`, {
       headers: { "x-apisports-key": apiKey },
       cache: "no-store"
     });
