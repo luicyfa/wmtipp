@@ -29,7 +29,7 @@ export default async function GroupsPage() {
         <section className="mt-5 rounded-xl bg-sun/25 p-4 text-amber-950 shadow-card">
           <h2 className="font-black">Stand jetzt</h2>
           <p className="mt-2 text-sm font-semibold">
-            Die Tabellen zeigen eine Live-Prognose nach den bisher eingetragenen Ergebnissen. Sortiert wird nach Punkten, direktem Duell bei Zweier-Gleichstand, Tordifferenz, erzielten Toren und Name. Extrem enge FIFA-Sonderfälle mit mehreren punktgleichen Teams sollten am Ende kurz manuell geprüft werden.
+            Die Tabellen zeigen eine Live-Prognose nach den bisher eingetragenen Ergebnissen. Bei Punktgleichheit zählt zuerst der direkte Vergleich der punktgleichen Teams, danach Gesamt-Tordifferenz und erzielte Tore. Fairplay- und FIFA-Ranking-Sonderfälle markieren wir zur manuellen Prüfung.
           </p>
         </section>
 
@@ -88,7 +88,18 @@ export default async function GroupsPage() {
                     {group.standings.map((team, index) => (
                       <tr key={team.teamName} className="border-t border-slate-100">
                         <td className="px-4 py-3 font-black">{index + 1}</td>
-                        <td className="px-4 py-3 font-bold">{team.teamName}</td>
+                        <td className="px-4 py-3 font-bold">
+                          <div className="flex flex-col gap-1">
+                            <span>{team.teamName}</span>
+                            {team.rankNote ? (
+                              <span className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
+                                team.needsManualTiebreaker ? "bg-sun/40 text-amber-950" : "bg-pitch/10 text-pitch"
+                              }`}>
+                                {team.rankNote}
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
                         <td className="px-3 py-3">{team.played}</td>
                         <td className="px-3 py-3">{team.wins}</td>
                         <td className="px-3 py-3">{team.draws}</td>
