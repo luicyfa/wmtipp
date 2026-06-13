@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { syncResultsFromApiFootball } from "@/lib/result-sync";
+import { syncResultsFromFootballData } from "@/lib/result-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const report = await syncResultsFromApiFootball();
+    const report = await syncResultsFromFootballData();
     return NextResponse.json(report);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unbekannter Sync-Fehler";

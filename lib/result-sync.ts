@@ -1,9 +1,9 @@
 import {
-  fetchWorldCupFixturesInWindow,
-  scoresFromApiFootball,
-  statusFromApiFootball,
-  type ApiFootballFixture
-} from "@/lib/api-football";
+  fetchWorldCupMatchesFromFootballData,
+  scoresFromFootballData,
+  statusFromFootballData,
+  type FootballDataMatch
+} from "@/lib/football-data";
 import { evaluateCompletedGroupWinnerBonuses, recalculateMatch, revalidateResultViews } from "@/lib/results";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Match } from "@/lib/types";
@@ -91,15 +91,13 @@ function namesMatch(localName: string | null | undefined, apiName: string | null
   return candidates.some((candidate) => candidate === normalizedApiName || normalizedApiName.includes(candidate));
 }
 
-function kickoffDiffMinutes(match: Match, fixture: ApiFootballFixture) {
-  const fixtureDate = fixture.fixture?.date;
-  if (!fixtureDate) return Number.POSITIVE_INFINITY;
-  return Math.abs(new Date(match.kickoff_at).getTime() - new Date(fixtureDate).getTime()) / 60000;
+function kickoffDiffMinutes(match: Match, externalMatch: FootballDataMatch) {
+  return Math.abs(new Date(match.kickoff_at).getTime() - new Date(externalMatch.utcDate).getTime()) / 60000;
 }
 
-function findFixtureForMatch(match: SyncableMatch, fixtures: ApiFootballFixture[]) {
+function findFixtureForMatch(match: SyncableMatch, externalMatches: FootballDataMatch[]) {
   if (match.api_football_fixture_id) {
-    return fixtures.find((fixture) => fixture.fixture?.id === match.api_football_fixture_id) ?? null;
+    return externalMatches.find((externalMatch) => externalMatch.id === match.api_football_fixture_id) ?? null;
   }
 
   const homeLabel = match.home_team?.name ?? match.home_team_label;
@@ -109,15 +107,15 @@ function findFixtureForMatch(match: SyncableMatch, fixtures: ApiFootballFixture[
     return null;
   }
 
-  return fixtures.find((fixture) => {
-    const homeName = fixture.teams?.home?.name;
-    const awayName = fixture.teams?.away?.name;
+  return externalMatches.find((externalMatch) => {
+    const homeName = externalMatch.homeTeam?.name;
+    const awayName = externalMatch.awayTeam?.name;
     const teamsMatch = namesMatch(homeLabel, homeName) && namesMatch(awayLabel, awayName);
-    return teamsMatch && kickoffDiffMinutes(match, fixture) <= 180;
+    return teamsMatch && kickoffDiffMinutes(match, externalMatch) <= 180;
   }) ?? null;
 }
 
-export async function syncResultsFromApiFootball(): Promise<ResultSyncReport> {
+export async function syncResultsFromFootballData(): Promise<ResultSyncReport> {
   const supabase = createServerSupabaseClient();
   const now = new Date();
   const windowStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
@@ -148,7 +146,7 @@ export async function syncResultsFromApiFootball(): Promise<ResultSyncReport> {
     };
   }
 
-  const { fixtures, skippedReason, leagueId, season } = await fetchWorldCupFixturesInWindow(windowStartDate, windowEndDate);
+  const { matches: externalMatches, skippedReason, competition, season } = await fetchWorldCupMatchesFromFootballData(windowStartDate, windowEndDate);
   if (skippedReason) {
     return {
       ok: false,
@@ -168,22 +166,22 @@ export async function syncResultsFromApiFootball(): Promise<ResultSyncReport> {
   let skipped = 0;
 
   for (const match of syncableMatches) {
-    const fixture = findFixtureForMatch(match, fixtures);
-    if (!fixture) {
+    const externalMatch = findFixtureForMatch(match, externalMatches);
+    if (!externalMatch) {
       skipped += 1;
       continue;
     }
 
-    const fixtureId = fixture.fixture?.id ?? null;
-    const status = statusFromApiFootball(fixture.fixture?.status?.short);
-    const { homeScore, awayScore } = scoresFromApiFootball(fixture);
+    const fixtureId = externalMatch.id;
+    const status = statusFromFootballData(externalMatch.status);
+    const { homeScore, awayScore } = scoresFromFootballData(externalMatch);
     const patch = {
       api_football_fixture_id: fixtureId,
       status,
       home_score: status === "finished" || status === "live" ? homeScore : match.home_score,
       away_score: status === "finished" || status === "live" ? awayScore : match.away_score,
       last_synced_at: new Date().toISOString(),
-      sync_source: `api-football:${leagueId}:${season}`
+      sync_source: `football-data:${competition}:${season}`
     };
 
     const hasChanged =
@@ -220,7 +218,7 @@ export async function syncResultsFromApiFootball(): Promise<ResultSyncReport> {
   return {
     ok: true,
     checked: syncableMatches.length,
-    apiFixtures: fixtures.length,
+    apiFixtures: externalMatches.length,
     linked,
     updated,
     recalculated,

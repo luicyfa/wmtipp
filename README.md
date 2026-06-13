@@ -110,12 +110,12 @@ Die App enthaelt eine vorbereitete Vercel-Cron-Route:
 
 - Route: `/api/cron/sync-results`
 - Zeitplan: taeglich `0 4 * * *` UTC, also waehrend der WM um 06:00 Uhr Berliner Sommerzeit
-- API-Quelle: API-FOOTBALL, sobald `API_FOOTBALL_KEY` gesetzt ist
-- Base-URL: `API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io`
-- Wettbewerb: `API_FOOTBALL_LEAGUE_ID=1`, `API_FOOTBALL_SEASON=2026`
+- API-Quelle: football-data.org, sobald `FOOTBALL_DATA_TOKEN` gesetzt ist
+- Base-URL: `FOOTBALL_DATA_BASE_URL=https://api.football-data.org/v4`
+- Wettbewerb: `FOOTBALL_DATA_COMPETITION=WC`, `FOOTBALL_DATA_SEASON=2026`
 - Vercel-Cron-Requests werden ueber den User-Agent `vercel-cron/1.0` erkannt; manuelle Aufrufe brauchen `CRON_SECRET`
 
-Damit der Sync echte Spiele aktualisieren kann, muss die Migration `db/migrations/005_api_football_sync.sql` ausgefuehrt werden. Der Cron zieht API-FOOTBALL-Fixtures fuer `league=1` und `season=2026`, prueft nur Spiele im relevanten Zeitfenster von 48 Stunden zurueck bis 24 Stunden nach vorn und hinterlegt passende `api_football_fixture_id`s automatisch, wenn Heimteam, Auswaertsteam und Anstoßzeit plausibel zusammenpassen. Ohne API-Key aendert der Cron nichts und gibt nur einen sauberen Hinweis zurueck.
+Damit der Sync echte Spiele aktualisieren kann, muss die Migration `db/migrations/005_api_football_sync.sql` ausgefuehrt werden. Der Cron zieht football-data.org-Matches fuer `WC` und `2026`, prueft nur Spiele im relevanten Zeitfenster von 48 Stunden zurueck bis 24 Stunden nach vorn und hinterlegt passende externe Match-IDs automatisch, wenn Heimteam, Auswaertsteam und Anstoßzeit plausibel zusammenpassen. Ohne API-Token aendert der Cron nichts und gibt nur einen sauberen Hinweis zurueck.
 
 Zum manuellen Testen:
 
@@ -129,7 +129,7 @@ curl -H "Authorization: Bearer <CRON_SECRET>" https://deine-domain.de/api/cron/s
 - `lib/auth.ts`: PIN-Hashing und Session-Cookie
 - `lib/scoring.ts`: zentrale Punkteberechnung
 - `lib/results.ts`: gemeinsame Ergebnis- und Bonusauswertung
-- `lib/result-sync.ts`: vorbereiteter Ergebnis-Sync via API-FOOTBALL
+- `lib/result-sync.ts`: vorbereiteter Ergebnis-Sync via football-data.org
 - `lib/rankings.ts`: Ranglistenabruf ueber Supabase-RPC
 - `db/migrations/001_initial_schema.sql`: Datenbankschema
 - `db/seed.sql`: Startdaten aus dem Excel-Spielplan
