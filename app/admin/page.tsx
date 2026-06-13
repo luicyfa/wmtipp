@@ -10,9 +10,9 @@ import { getMatches, getPlayers } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
 import { getRankings } from "@/lib/rankings";
 
-function syncFeedback(params: { result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string }) {
+function syncFeedback(params: { result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string; message?: string }) {
   if (params.result === "live-sync-error") {
-    return "Live-Abgleich hat gerade nicht geklappt. Bitte später nochmal versuchen oder Ergebnis manuell eintragen.";
+    return params.message ?? "Live-Abgleich hat gerade nicht geklappt. Bitte später nochmal versuchen oder Ergebnis manuell eintragen.";
   }
   if (params.result !== "live-sync") return null;
   return `Live-Abgleich fertig: ${params.updated ?? "0"} Spiele aktualisiert, ${params.recalculated ?? "0"} Punkte neu berechnet, ${params.linked ?? "0"} neu verknüpft.`;
@@ -21,7 +21,7 @@ function syncFeedback(params: { result?: string; updated?: string; recalculated?
 export default async function AdminPage({
   searchParams
 }: {
-  searchParams: Promise<{ result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string }>;
+  searchParams: Promise<{ result?: string; updated?: string; recalculated?: string; linked?: string; apiFixtures?: string; message?: string }>;
 }) {
   const admin = await requireAdmin();
   if (!admin) redirect("/dashboard?error=keine-adminrechte");

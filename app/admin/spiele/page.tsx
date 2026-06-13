@@ -48,6 +48,7 @@ export default async function AdminMatchesPage({
     updated?: string;
     recalculated?: string;
     linked?: string;
+    message?: string;
   }>;
 }) {
   const admin = await requireAdmin();
@@ -105,7 +106,7 @@ export default async function AdminMatchesPage({
         : params.result === "live-sync"
           ? `Live-Abgleich fertig: ${params.updated ?? "0"} Spiele aktualisiert, ${params.recalculated ?? "0"} Punkte neu berechnet, ${params.linked ?? "0"} neu verknüpft.`
           : params.result === "live-sync-error"
-            ? "Live-Abgleich hat gerade nicht geklappt. Du kannst Ergebnisse weiter manuell eintragen."
+            ? params.message ?? "Live-Abgleich hat gerade nicht geklappt. Du kannst Ergebnisse weiter manuell eintragen."
         : null;
 
   return (

@@ -334,7 +334,8 @@ export async function syncLiveResultsAction(formData: FormData) {
     linked: report.linked,
     updated: report.updated,
     recalculated: report.recalculated,
-    skipped: report.skipped
+    skipped: report.skipped,
+    message: report.message
   });
 }
 
