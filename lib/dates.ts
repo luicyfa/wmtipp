@@ -23,12 +23,12 @@ function getBerlinOffsetMinutes(date: Date) {
     .formatToParts(date)
     .find((part) => part.type === "timeZoneName")?.value;
 
-  const match = timeZoneName?.match(/^GMT(?<sign>[+-])(?<hours>\d{1,2})(?::(?<minutes>\d{2}))?$/);
-  if (!match?.groups) return 0;
+  const match = timeZoneName?.match(/^GMT([+-])(\d{1,2})(?::(\d{2}))?$/);
+  if (!match) return 0;
 
-  const sign = match.groups.sign === "-" ? -1 : 1;
-  const hours = Number(match.groups.hours);
-  const minutes = Number(match.groups.minutes ?? "0");
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2]);
+  const minutes = Number(match[3] ?? "0");
   return sign * (hours * 60 + minutes);
 }
 
