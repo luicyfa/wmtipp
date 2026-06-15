@@ -1,5 +1,46 @@
+const APP_TIME_ZONE = "Europe/Berlin";
+
+function getBerlinParts(value: string | Date) {
+  const parts = new Intl.DateTimeFormat("de-DE", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date(value));
+
+  return {
+    year: Number(parts.find((part) => part.type === "year")?.value),
+    month: Number(parts.find((part) => part.type === "month")?.value),
+    day: Number(parts.find((part) => part.type === "day")?.value)
+  };
+}
+
+function getBerlinOffsetMinutes(date: Date) {
+  const timeZoneName = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    timeZoneName: "shortOffset"
+  })
+    .formatToParts(date)
+    .find((part) => part.type === "timeZoneName")?.value;
+
+  const match = timeZoneName?.match(/^GMT(?<sign>[+-])(?<hours>\d{1,2})(?::(?<minutes>\d{2}))?$/);
+  if (!match?.groups) return 0;
+
+  const sign = match.groups.sign === "-" ? -1 : 1;
+  const hours = Number(match.groups.hours);
+  const minutes = Number(match.groups.minutes ?? "0");
+  return sign * (hours * 60 + minutes);
+}
+
+function berlinMidnightUtc(year: number, month: number, day: number) {
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  const offsetMinutes = getBerlinOffsetMinutes(utcGuess);
+  return new Date(utcGuess.getTime() - offsetMinutes * 60 * 1000);
+}
+
 export function formatDateTime(value: string | Date) {
   return new Intl.DateTimeFormat("de-DE", {
+    timeZone: APP_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -7,6 +48,7 @@ export function formatDateTime(value: string | Date) {
 
 export function formatShortDate(value: string | Date) {
   return new Intl.DateTimeFormat("de-DE", {
+    timeZone: APP_TIME_ZONE,
     weekday: "short",
     day: "2-digit",
     month: "2-digit"
@@ -15,6 +57,7 @@ export function formatShortDate(value: string | Date) {
 
 export function formatDayHeading(value: string | Date) {
   return new Intl.DateTimeFormat("de-DE", {
+    timeZone: APP_TIME_ZONE,
     weekday: "long",
     day: "2-digit",
     month: "long"
@@ -22,18 +65,17 @@ export function formatDayHeading(value: string | Date) {
 }
 
 export function dateKey(value: string | Date) {
-  const date = new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const { year, month, day } = getBerlinParts(value);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export function startOfLocalDay(date = new Date()) {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
+  const { year, month, day } = getBerlinParts(date);
+  return berlinMidnightUtc(year, month, day);
 }
 
 export function addDays(date: Date, days: number) {
   const next = new Date(date);
-  next.setDate(next.getDate() + days);
+  next.setUTCDate(next.getUTCDate() + days);
   return next;
 }
