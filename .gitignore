@@ -5,6 +5,7 @@ dist/
 coverage/
 .pnpm-home/
 .pnpm-store/
+.tools/
 .env
 .env*.local
 *.log
