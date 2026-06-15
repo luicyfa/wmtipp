@@ -3,7 +3,7 @@ import { Medal, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { RankingTable } from "@/components/RankingTable";
 import { requirePlayer } from "@/lib/auth";
-import { getRankings, rankForPlayer } from "@/lib/rankings";
+import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
 
 export default async function RankingPage() {
   const player = await requirePlayer();
@@ -13,7 +13,9 @@ export default async function RankingPage() {
   const ownRank = rankForPlayer(rankings, player.id);
   const leader = rankings[0];
   const gapToLeader = own && leader ? Math.max(0, leader.total_points - own.total_points) : 0;
-  const topThree = rankings.slice(0, 3);
+  const topThree = rankings
+    .map((row, index) => ({ row, rank: rankForRow(rankings, index) ?? index + 1 }))
+    .filter((item) => item.rank <= 3);
 
   return (
     <>
@@ -38,11 +40,11 @@ export default async function RankingPage() {
           </div>
         </section>
         <section className="mt-5 grid gap-3 md:grid-cols-3">
-          {topThree.map((row, index) => (
-            <div key={row.player_id} className={`rounded-xl p-4 shadow-card ${index === 0 ? "mex-gold-panel text-amber-950 md:-mt-2" : "bg-white"}`}>
+          {topThree.map(({ row, rank }) => (
+            <div key={row.player_id} className={`rounded-xl p-4 shadow-card ${rank === 1 ? "mex-gold-panel text-amber-950 md:-mt-2" : "bg-white"}`}>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black uppercase tracking-wide">Platz {index + 1}</span>
-                {index === 0 ? <Trophy className="h-6 w-6" /> : <Medal className="h-6 w-6 text-pitch" />}
+                <span className="text-sm font-black uppercase tracking-wide">Platz {rank}</span>
+                {rank === 1 ? <Trophy className="h-6 w-6" /> : <Medal className="h-6 w-6 text-pitch" />}
               </div>
               <h2 className="mt-3 text-2xl font-black">{row.name}</h2>
               <p className="mt-1 text-sm font-semibold">{row.total_points} Punkte · {row.exact_scores} exakte Tipps</p>

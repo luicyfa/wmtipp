@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { LogOut, Shield, Trophy } from "lucide-react";
 import { logoutAction } from "@/app/actions";
+import { BackButton } from "@/components/BackButton";
 import type { Player } from "@/lib/types";
 
 export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"> }) {
   return (
     <header className="sticky top-0 z-20 border-b border-pitch/10 bg-[#f8faf7]/[0.94] backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 pb-2 pt-3">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-ink">
-          <span className="grid h-8 w-8 place-items-center rounded-2xl bg-pitch/10 text-pitch">
-            <Trophy className="h-4 w-4" />
-          </span>
-          WM-Tipp
-        </Link>
+        <div className="flex items-center gap-2">
+          <BackButton fallbackHref={player.is_admin ? "/admin" : "/dashboard"} />
+          <Link href={player.is_admin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-bold text-ink">
+            <span className="grid h-8 w-8 place-items-center rounded-2xl bg-pitch/10 text-pitch">
+              <Trophy className="h-4 w-4" />
+            </span>
+            WM-Tipp
+          </Link>
+        </div>
         <div className="flex items-center gap-2">
           {player.is_admin ? (
             <Link href="/admin" className="focus-ring rounded-2xl bg-pitch px-3 py-2 text-xs font-semibold text-white">

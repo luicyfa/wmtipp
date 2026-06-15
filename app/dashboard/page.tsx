@@ -5,8 +5,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
 import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
-import { getRankings, rankForPlayer } from "@/lib/rankings";
-import { addDays, startOfLocalDay } from "@/lib/dates";
+import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
+import { addDays, formatDayHeading, startOfLocalDay } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 
 export default async function DashboardPage() {
@@ -23,9 +23,14 @@ export default async function DashboardPage() {
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
   const tomorrow = addDays(today, 1);
+  const afterTomorrow = addDays(today, 2);
   const todaysMatches = matches.filter((match) => {
     const kickoff = new Date(match.kickoff_at);
     return kickoff >= today && kickoff < tomorrow;
+  });
+  const tomorrowMatches = matches.filter((match) => {
+    const kickoff = new Date(match.kickoff_at);
+    return kickoff >= tomorrow && kickoff < afterTomorrow;
   });
   const missing = matches.filter((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at));
   const rank = rankForPlayer(rankings, player.id);
@@ -137,27 +142,47 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-6">
-          <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Calendar className="h-5 w-5 text-pitch" />Heutige Spiele</h2>
-          {todaysMatches.length ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              {todaysMatches.map((match) => (
-                <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
-              ))}
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Calendar className="h-5 w-5 text-pitch" />Heute & morgen</h2>
+          {todaysMatches.length || tomorrowMatches.length ? (
+            <div className="space-y-5">
+              {todaysMatches.length ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-black uppercase text-pitch">{formatDayHeading(today)}</h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {todaysMatches.map((match) => (
+                      <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {tomorrowMatches.length ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-black uppercase text-pitch">{formatDayHeading(tomorrow)}</h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {tomorrowMatches.map((match) => (
+                      <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
-            <div className="rounded-xl bg-white p-4 text-slate-600 shadow-card">Heute stehen keine Spiele an.</div>
+            <div className="rounded-xl bg-white p-4 text-slate-600 shadow-card">Heute und morgen stehen keine Spiele an.</div>
           )}
         </section>
 
         <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
           <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Medal className="h-5 w-5 text-sun" />Top 5</h2>
           <div className="space-y-2">
-            {rankings.slice(0, 5).map((row, index) => (
+            {rankings.slice(0, 5).map((row, index) => {
+              const rowRank = rankForRow(rankings, index) ?? index + 1;
+              return (
               <div key={row.player_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                <span className="font-bold">{index < 3 ? `Top ${index + 1}` : `${index + 1}.`} {row.name}</span>
+                <span className="font-bold">Platz {rowRank} {row.name}</span>
                 <span>{row.total_points} Punkte</span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

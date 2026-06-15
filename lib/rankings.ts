@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RankingRow } from "@/lib/types";
+export { rankForPlayer, rankForRow } from "@/lib/ranking-places";
 
 const getCachedRankings = unstable_cache(async (): Promise<RankingRow[]> => {
   const supabase = createServerSupabaseClient();
@@ -11,18 +12,10 @@ const getCachedRankings = unstable_cache(async (): Promise<RankingRow[]> => {
   return rows.sort((a: RankingRow, b: RankingRow) => {
     if (b.total_points !== a.total_points) return b.total_points - a.total_points;
     if (b.exact_scores !== a.exact_scores) return b.exact_scores - a.exact_scores;
-    if (b.correct_tendencies !== a.correct_tendencies) {
-      return b.correct_tendencies - a.correct_tendencies;
-    }
     return a.name.localeCompare(b.name, "de");
   });
 }, ["rankings"], { tags: ["rankings"], revalidate: 60 });
 
 export async function getRankings(): Promise<RankingRow[]> {
   return getCachedRankings();
-}
-
-export function rankForPlayer(rankings: RankingRow[], playerId: string) {
-  const index = rankings.findIndex((row) => row.player_id === playerId);
-  return index === -1 ? null : index + 1;
 }

@@ -1,5 +1,6 @@
 import { Medal, Trophy } from "lucide-react";
 import { clsx } from "clsx";
+import { rankForRow } from "@/lib/rankings";
 import type { RankingRow } from "@/lib/types";
 
 export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; currentPlayerId?: string }) {
@@ -14,6 +15,7 @@ export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; cu
         <div className="divide-y divide-slate-100">
           {rows.map((row, index) => {
             const isCurrent = row.player_id === currentPlayerId;
+            const rank = rankForRow(rows, index) ?? index + 1;
             return (
               <div
                 key={row.player_id}
@@ -23,9 +25,9 @@ export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; cu
                 )}
               >
                 <span className="inline-flex items-center gap-1 font-black text-ink">
-                  {index === 0 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
-                  {index > 0 && index < 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
-                  {index + 1}
+                  {rank === 1 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
+                  {rank > 1 && rank <= 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
+                  {rank}
                 </span>
                 <div className="min-w-0">
                   <p className="truncate font-black text-ink">
@@ -44,41 +46,44 @@ export function RankingTable({ rows, currentPlayerId }: { rows: RankingRow[]; cu
       </div>
       <div className="hidden overflow-hidden rounded-xl bg-white shadow-card md:block">
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-pitch text-white">
-            <tr>
-              <th className="px-4 py-3">Platz</th>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Punkte</th>
-              <th className="px-4 py-3">Exakt</th>
-              <th className="px-4 py-3">Tendenz</th>
-              <th className="px-4 py-3">Getippt</th>
-              <th className="px-4 py-3">Offen</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={row.player_id} className={clsx("border-b border-slate-100", row.player_id === currentPlayerId && "bg-sun/25 font-bold")}>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-2">
-                    {index === 0 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
-                    {index > 0 && index < 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
-                    {index + 1}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  {row.name}
-                  {row.player_id === currentPlayerId ? <span className="ml-2 rounded-full bg-pitch px-2 py-0.5 text-xs font-black text-white">Du</span> : null}
-                </td>
-                <td className="px-4 py-3 text-lg font-black">{row.total_points}</td>
-                <td className="px-4 py-3">{row.exact_scores}</td>
-                <td className="px-4 py-3">{row.correct_tendencies}</td>
-                <td className="px-4 py-3">{row.predicted_matches}</td>
-                <td className="px-4 py-3">{row.open_predictions}</td>
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="bg-pitch text-white">
+              <tr>
+                <th className="px-4 py-3">Platz</th>
+                <th className="px-4 py-3">Name</th>
+                <th className="px-4 py-3">Punkte</th>
+                <th className="px-4 py-3">Exakt</th>
+                <th className="px-4 py-3">Tendenz</th>
+                <th className="px-4 py-3">Getippt</th>
+                <th className="px-4 py-3">Offen</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => {
+                const rank = rankForRow(rows, index) ?? index + 1;
+                return (
+                  <tr key={row.player_id} className={clsx("border-b border-slate-100", row.player_id === currentPlayerId && "bg-sun/25 font-bold")}>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-2">
+                        {rank === 1 ? <Trophy className="h-4 w-4 text-amber-500" /> : null}
+                        {rank > 1 && rank <= 3 ? <Medal className="h-4 w-4 text-pitch" /> : null}
+                        {rank}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {row.name}
+                      {row.player_id === currentPlayerId ? <span className="ml-2 rounded-full bg-pitch px-2 py-0.5 text-xs font-black text-white">Du</span> : null}
+                    </td>
+                    <td className="px-4 py-3 text-lg font-black">{row.total_points}</td>
+                    <td className="px-4 py-3">{row.exact_scores}</td>
+                    <td className="px-4 py-3">{row.correct_tendencies}</td>
+                    <td className="px-4 py-3">{row.predicted_matches}</td>
+                    <td className="px-4 py-3">{row.open_predictions}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
