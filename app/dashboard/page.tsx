@@ -147,7 +147,7 @@ export default async function DashboardPage({
             <div>
               <h2 className="flex items-center gap-2 text-xl font-black">
                 <Calendar className="h-5 w-5 text-pitch" />
-                Spiele rund um heute
+                Aktuelle Spiele
               </h2>
               <p className="mt-1 text-sm font-semibold text-slate-600">
                 {formatDayHeading(selectedDay.start)}
