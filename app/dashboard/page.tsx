@@ -6,7 +6,7 @@ import { MatchCard } from "@/components/MatchCard";
 import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
-import { addDays, formatDayHeading, startOfLocalDay } from "@/lib/dates";
+import { addDays, formatDateTime, formatDayHeading, startOfLocalDay } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 
 const dayOptions = [
@@ -68,6 +68,7 @@ export default async function DashboardPage({
         eyebrow: "Jetzt dran",
         title: "Noch zu tippen",
         body: `${nextMissing.home_team?.name ?? nextMissing.home_team_label} gegen ${nextMissing.away_team?.name ?? nextMissing.away_team_label}`,
+        schedule: `Anstoß: ${formatDateTime(nextMissing.kickoff_at)}`,
         meta: `Noch ${missing.length} Spiele offen`,
         href: "/tippen",
         label: "Los tippen",
@@ -79,6 +80,7 @@ export default async function DashboardPage({
           eyebrow: "Bonus fehlt",
           title: "Bonus-Tipps erledigen",
           body: "Weltmeister und Gruppensieger bringen Extra-Punkte.",
+          schedule: null,
           meta: `Noch ${missingBonusTips} Bonus-Tipps offen`,
           href: "/bonus",
           label: "Bonus tippen",
@@ -89,6 +91,7 @@ export default async function DashboardPage({
           eyebrow: "Alles erledigt",
           title: "Du bist bereit",
           body: "Alle aktuell möglichen Tipps sind gespeichert.",
+          schedule: null,
           meta: "Zeit für den Blick auf die Rangliste",
           href: "/rangliste",
           label: "Rangliste ansehen",
@@ -125,6 +128,9 @@ export default async function DashboardPage({
           </span>
           <h2 className="mt-2 text-3xl font-black">{primaryAction.title}</h2>
           <span className="mt-3 block text-xl font-black">{primaryAction.body}</span>
+          {primaryAction.schedule ? (
+            <span className="mt-1 block text-sm font-black">{primaryAction.schedule}</span>
+          ) : null}
           <span className="mt-1 block text-sm font-semibold">{primaryAction.meta}</span>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Link
