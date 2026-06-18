@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut, Shield, Trophy } from "lucide-react";
+import { Home, LogOut, Shield, Trophy } from "lucide-react";
 import { logoutAction } from "@/app/actions";
 import { BackButton } from "@/components/BackButton";
 import type { Player } from "@/lib/types";
@@ -39,14 +39,21 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
               <Link className="mex-nav-link-primary" href="/admin/spiele?filter=faellig">
                 Ergebnisse
               </Link>
+              <Link className="mex-nav-link inline-flex items-center gap-1.5" href="/admin">
+                <Home className="h-4 w-4" />
+                Start
+              </Link>
               <Link className="mex-nav-link" href="/admin/teilnehmer">Teilnehmer</Link>
-              <Link className="mex-nav-link" href="/admin">Admin</Link>
               <Link className="mex-nav-link" href="/rangliste">Rangliste</Link>
               <Link className="mex-nav-link" href="/gruppen">Gruppen</Link>
               <Link className="mex-nav-link" href="/regeln">Regeln</Link>
             </>
           ) : (
             <>
+              <Link className="mex-nav-link inline-flex items-center gap-1.5" href="/dashboard">
+                <Home className="h-4 w-4" />
+                Start
+              </Link>
               <Link className="mex-nav-link-primary" href="/tippen">Tippen</Link>
               <Link className="mex-nav-link" href="/rangliste">Rangliste</Link>
               <Link className="mex-nav-link" href="/meine-tipps">Meine Tipps</Link>

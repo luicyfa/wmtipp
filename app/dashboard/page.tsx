@@ -9,10 +9,29 @@ import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
 import { addDays, formatDayHeading, startOfLocalDay } from "@/lib/dates";
 import { isPredictionLocked } from "@/lib/scoring";
 
-export default async function DashboardPage() {
+const dayOptions = [
+  { key: "gestern", label: "Gestern", offset: -1 },
+  { key: "heute", label: "Heute", offset: 0 },
+  { key: "morgen", label: "Morgen", offset: 1 },
+  { key: "uebermorgen", label: "Übermorgen", offset: 2 }
+] as const;
+
+type DayKey = (typeof dayOptions)[number]["key"];
+
+function isDayKey(value: string | undefined): value is DayKey {
+  return dayOptions.some((option) => option.key === value);
+}
+
+export default async function DashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ tag?: string }>;
+}) {
   const player = await requirePlayer();
   if (!player) redirect("/");
   if (player.is_admin) redirect("/admin");
+  const params = await searchParams;
+  const selectedDayKey: DayKey = isDayKey(params.tag) ? params.tag : "heute";
 
   const [matches, predictions, rankings, bonusPredictions] = await Promise.all([
     getMatches(),
@@ -22,16 +41,20 @@ export default async function DashboardPage() {
   ]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
-  const tomorrow = addDays(today, 1);
-  const afterTomorrow = addDays(today, 2);
-  const todaysMatches = matches.filter((match) => {
-    const kickoff = new Date(match.kickoff_at);
-    return kickoff >= today && kickoff < tomorrow;
+  const days = dayOptions.map((option) => {
+    const start = addDays(today, option.offset);
+    const end = addDays(start, 1);
+    const dayMatches = matches.filter((match) => {
+      const kickoff = new Date(match.kickoff_at);
+      return kickoff >= start && kickoff < end;
+    });
+    return { ...option, start, matches: dayMatches };
   });
-  const tomorrowMatches = matches.filter((match) => {
-    const kickoff = new Date(match.kickoff_at);
-    return kickoff >= tomorrow && kickoff < afterTomorrow;
-  });
+  const selectedDay = days.find((day) => day.key === selectedDayKey) ?? days[1];
+  const selectedMatches = selectedDay.matches;
+  const selectedOpenTips = selectedMatches.filter(
+    (match) => !isPredictionLocked(match.kickoff_at) && !predictionMap.has(match.id)
+  ).length;
   const missing = matches.filter((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at));
   const rank = rankForPlayer(rankings, player.id);
   const own = rankings.find((row) => row.player_id === player.id);
@@ -119,6 +142,55 @@ export default async function DashboardPage() {
           </div>
         </section>
 
+        <section id="spiele" className="mt-6 scroll-mt-36">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-xl font-black">
+                <Calendar className="h-5 w-5 text-pitch" />
+                Spiele rund um heute
+              </h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">
+                {formatDayHeading(selectedDay.start)}
+                {selectedOpenTips ? ` · noch ${selectedOpenTips} zu tippen` : ""}
+              </p>
+            </div>
+            <Link href="/spiele" className="text-sm font-black text-pitch">Alle Spiele</Link>
+          </div>
+          <div className="hide-scrollbar -mx-4 mb-4 overflow-x-auto px-4 pb-1">
+            <div className="flex min-w-max gap-2">
+              {days.map((day) => (
+                <Link
+                  key={day.key}
+                  href={`/dashboard?tag=${day.key}#spiele`}
+                  className={`focus-ring rounded-xl px-4 py-3 text-sm font-black ${
+                    selectedDayKey === day.key
+                      ? "bg-pitch text-white shadow-card"
+                      : "bg-white text-ink shadow-sm"
+                  }`}
+                >
+                  {day.label}
+                  <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                    selectedDayKey === day.key ? "bg-white/15 text-white" : "bg-pitch/10 text-pitch"
+                  }`}>
+                    {day.matches.length}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          {selectedMatches.length ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {selectedMatches.map((match) => (
+                <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl bg-white p-5 text-slate-600 shadow-card">
+              An diesem Tag stehen keine Spiele an.
+            </div>
+          )}
+        </section>
+
         <section className="mt-6 rounded-xl bg-white p-4 shadow-card">
           <h2 className="flex items-center gap-2 text-xl font-black">
             <Trophy className="h-5 w-5 text-sun" />
@@ -138,36 +210,6 @@ export default async function DashboardPage() {
                 Bonus-Tipps erledigen
               </Link>
             </div>
-          )}
-        </section>
-
-        <section className="mt-6">
-          <h2 className="mb-3 flex items-center gap-2 text-xl font-black"><Calendar className="h-5 w-5 text-pitch" />Heute & morgen</h2>
-          {todaysMatches.length || tomorrowMatches.length ? (
-            <div className="space-y-5">
-              {todaysMatches.length ? (
-                <div>
-                  <h3 className="mb-2 text-sm font-black uppercase text-pitch">{formatDayHeading(today)}</h3>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {todaysMatches.map((match) => (
-                      <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {tomorrowMatches.length ? (
-                <div>
-                  <h3 className="mb-2 text-sm font-black uppercase text-pitch">{formatDayHeading(tomorrow)}</h3>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {tomorrowMatches.map((match) => (
-                      <MatchCard key={match.id} match={match} prediction={predictionMap.get(match.id)} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="rounded-xl bg-white p-4 text-slate-600 shadow-card">Heute und morgen stehen keine Spiele an.</div>
           )}
         </section>
 
