@@ -7,6 +7,8 @@ export type ScoringResult = {
   correct_goal_difference: boolean;
   correct_home_goals: boolean;
   correct_away_goals: boolean;
+  correct_advancing_team: boolean;
+  advancing_points: number;
 };
 
 export const defaultScoreRules: ScoreRules = {
@@ -16,8 +18,12 @@ export const defaultScoreRules: ScoreRules = {
   team_goals_points: 1
 };
 
-type ScoreLike = Pick<Prediction, "home_score" | "away_score">;
-type MatchScoreLike = Pick<Match, "home_score" | "away_score">;
+type ScoreLike = Pick<Prediction, "home_score" | "away_score"> & {
+  advancing_team_id?: string | null;
+};
+type MatchScoreLike = Pick<Match, "home_score" | "away_score"> & {
+  winner_team_id?: string | null;
+};
 
 function tendency(home: number, away: number) {
   if (home > away) return "home";
@@ -36,7 +42,9 @@ export function calculatePredictionPoints(
     correct_tendency: false,
     correct_goal_difference: false,
     correct_home_goals: false,
-    correct_away_goals: false
+    correct_away_goals: false,
+    correct_advancing_team: false,
+    advancing_points: 0
   };
 
   if (match.home_score === null || match.away_score === null) {
@@ -45,15 +53,23 @@ export function calculatePredictionPoints(
 
   const exact =
     prediction.home_score === match.home_score && prediction.away_score === match.away_score;
+  const correctAdvancingTeam = Boolean(
+    prediction.advancing_team_id &&
+    match.winner_team_id &&
+    prediction.advancing_team_id === match.winner_team_id
+  );
+  const advancingPoints = correctAdvancingTeam ? 1 : 0;
 
   if (exact) {
     return {
-      points: scoreRules.exact_score_points,
+      points: scoreRules.exact_score_points + advancingPoints,
       exact_score: true,
       correct_tendency: true,
       correct_goal_difference: true,
       correct_home_goals: true,
-      correct_away_goals: true
+      correct_away_goals: true,
+      correct_advancing_team: correctAdvancingTeam,
+      advancing_points: advancingPoints
     };
   }
 
@@ -72,12 +88,14 @@ export function calculatePredictionPoints(
   }
 
   return {
-    points,
+    points: points + advancingPoints,
     exact_score: false,
     correct_tendency,
     correct_goal_difference,
     correct_home_goals,
-    correct_away_goals
+    correct_away_goals,
+    correct_advancing_team: correctAdvancingTeam,
+    advancing_points: advancingPoints
   };
 }
 

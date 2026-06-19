@@ -5,6 +5,7 @@ import { MatchCard } from "@/components/MatchCard";
 import { requirePlayer } from "@/lib/auth";
 import { getMatches, getPlayerPredictions } from "@/lib/data";
 import { addDays, dateKey, formatDayHeading, startOfLocalDay } from "@/lib/dates";
+import { isMatchPredictionOpen } from "@/lib/knockout";
 import { isPredictionLocked } from "@/lib/scoring";
 
 const filters = [
@@ -33,7 +34,9 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
     const kickoff = new Date(match.kickoff_at);
     if (activeFilter === "heute") return kickoff >= today && kickoff < tomorrow;
     if (activeFilter === "morgen") return kickoff >= tomorrow && kickoff < afterTomorrow;
-    if (activeFilter === "nicht-getippt") return !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at);
+    if (activeFilter === "nicht-getippt") {
+      return isMatchPredictionOpen(match) && !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at);
+    }
     if (activeFilter === "gruppenphase") return match.round.toLowerCase().includes("gruppen");
     if (activeFilter === "ko") return !match.round.toLowerCase().includes("gruppen");
     if (activeFilter === "beendet") return match.status === "finished";
@@ -46,7 +49,12 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
     groups.set(key, entries);
     return groups;
   }, new Map());
-  const totalOpen = matches.filter((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at)).length;
+  const totalOpen = matches.filter(
+    (match) =>
+      isMatchPredictionOpen(match) &&
+      !predictionMap.has(match.id) &&
+      !isPredictionLocked(match.kickoff_at)
+  ).length;
   const totalPredicted = predictions.length;
 
   return (

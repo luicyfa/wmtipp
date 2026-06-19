@@ -7,6 +7,7 @@ import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/dat
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
 import { addDays, formatDateTime, formatDayHeading, startOfLocalDay } from "@/lib/dates";
+import { isMatchPredictionOpen } from "@/lib/knockout";
 import { isPredictionLocked } from "@/lib/scoring";
 
 const dayOptions = [
@@ -53,9 +54,23 @@ export default async function DashboardPage({
   const selectedDay = days.find((day) => day.key === selectedDayKey) ?? days[1];
   const selectedMatches = selectedDay.matches;
   const selectedOpenTips = selectedMatches.filter(
-    (match) => !isPredictionLocked(match.kickoff_at) && !predictionMap.has(match.id)
+    (match) =>
+      isMatchPredictionOpen(match) &&
+      !isPredictionLocked(match.kickoff_at) &&
+      !predictionMap.has(match.id)
   ).length;
-  const missing = matches.filter((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at));
+  const missing = matches.filter(
+    (match) =>
+      isMatchPredictionOpen(match) &&
+      !predictionMap.has(match.id) &&
+      !isPredictionLocked(match.kickoff_at)
+  );
+  const knockoutMatches = matches.filter((match) => match.round !== "Gruppenphase");
+  const openKnockoutMatches = knockoutMatches.filter(
+    (match) => isMatchPredictionOpen(match) && !isPredictionLocked(match.kickoff_at)
+  );
+  const missingKnockoutTips = openKnockoutMatches.filter((match) => !predictionMap.has(match.id)).length;
+  const firstKnockoutKickoff = knockoutMatches[0]?.kickoff_at ?? null;
   const rank = rankForPlayer(rankings, player.id);
   const own = rankings.find((row) => row.player_id === player.id);
   const nextMissing = missing[0] ?? null;
@@ -153,6 +168,26 @@ export default async function DashboardPage({
           <p className="mt-1 font-semibold text-slate-600">
             Zusatzpunkte gibt es jetzt nur noch für die richtige Tordifferenz. Einzelne Team-Tore zählen nicht mehr extra; bisherige Spiele wurden neu berechnet.
           </p>
+        </section>
+
+        <section className="mt-4 rounded-xl bg-pitch/10 px-4 py-4 text-pitch shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-black">Finalrunde</p>
+              <p className="mt-1 text-sm font-semibold">
+                {missingKnockoutTips
+                  ? `${missingKnockoutTips} neue K.-o.-Spiele sind tippbar.`
+                  : openKnockoutMatches.length
+                    ? "Alle aktuell offenen K.-o.-Spiele sind getippt."
+                    : firstKnockoutKickoff
+                      ? `Start am ${formatDateTime(firstKnockoutKickoff)}. Die Begegnungen öffnen sich, sobald die Teams feststehen.`
+                      : "Die Begegnungen öffnen sich, sobald die Teams feststehen."}
+              </p>
+            </div>
+            <Link href="/finalrunde" className="shrink-0 rounded-xl bg-pitch px-3 py-2 text-sm font-black text-white">
+              Ansehen
+            </Link>
+          </div>
         </section>
 
         <section id="spiele" className="mt-6 scroll-mt-36">

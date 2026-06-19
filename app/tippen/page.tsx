@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { requirePlayer } from "@/lib/auth";
 import { getMatches, getPlayerPredictions } from "@/lib/data";
+import { isMatchPredictionOpen } from "@/lib/knockout";
 import { isPredictionLocked } from "@/lib/scoring";
 
 export default async function GuidedTipPage({
@@ -16,7 +17,12 @@ export default async function GuidedTipPage({
   const params = await searchParams;
   const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
-  const nextOpen = matches.find((match) => !predictionMap.has(match.id) && !isPredictionLocked(match.kickoff_at));
+  const nextOpen = matches.find(
+    (match) =>
+      isMatchPredictionOpen(match) &&
+      !predictionMap.has(match.id) &&
+      !isPredictionLocked(match.kickoff_at)
+  );
 
   if (nextOpen) redirect(`/spiele/${nextOpen.id}?mode=tippen`);
 

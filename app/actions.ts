@@ -7,6 +7,7 @@ import { clearSession, hashPin, requireAdmin, requirePlayer, setSession, validat
 import { isBonusLockedForPlayer } from "@/lib/bonus-locks";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMatch, getMatches, getPlayerPredictions, getPrediction } from "@/lib/data";
+import { isKnockoutMatch, isMatchPredictionOpen, updateKnockoutBracket } from "@/lib/knockout";
 import { evaluateCompletedGroupWinnerBonuses, recalculateMatch } from "@/lib/results";
 import { syncResultsFromFootballData } from "@/lib/result-sync";
 import { isPredictionLocked } from "@/lib/scoring";
@@ -18,6 +19,16 @@ function formString(formData: FormData, key: string) {
 
 function formNumber(formData: FormData, key: string) {
   const value = Number(formString(formData, key));
+  if (!Number.isInteger(value) || value < 0 || value > 30) {
+    throw new Error("Ungueltige Eingabe.");
+  }
+  return value;
+}
+
+function optionalFormNumber(formData: FormData, key: string) {
+  const raw = formString(formData, key);
+  if (!raw) return null;
+  const value = Number(raw);
   if (!Number.isInteger(value) || value < 0 || value > 30) {
     throw new Error("Ungueltige Eingabe.");
   }
@@ -86,10 +97,21 @@ export async function savePredictionAction(formData: FormData) {
   const mode = formString(formData, "mode");
   const homeScore = formNumber(formData, "homeScore");
   const awayScore = formNumber(formData, "awayScore");
+  const advancingTeamId = formString(formData, "advancingTeamId") || null;
   const match = await getMatch(matchId);
 
+  if (!isMatchPredictionOpen(match)) {
+    redirect(`/spiele/${matchId}?error=spiel-noch-nicht-freigegeben`);
+  }
   if (isPredictionLocked(match.kickoff_at)) {
     redirect(`/spiele/${matchId}?error=tippfrist-abgelaufen`);
+  }
+  if (
+    isKnockoutMatch(match) &&
+    advancingTeamId !== match.home_team_id &&
+    advancingTeamId !== match.away_team_id
+  ) {
+    redirect(`/spiele/${matchId}?error=weiterkommer-fehlt`);
   }
 
   const existingPrediction = await getPrediction(player.id, matchId);
@@ -100,6 +122,7 @@ export async function savePredictionAction(formData: FormData) {
       match_id: matchId,
       home_score: homeScore,
       away_score: awayScore,
+      advancing_team_id: isKnockoutMatch(match) ? advancingTeamId : null,
       locked_at: null,
       updated_at: new Date().toISOString()
     },
@@ -117,7 +140,12 @@ export async function savePredictionAction(formData: FormData) {
   if (mode === "tippen") {
     const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);
     const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
-    const nextOpen = matches.find((item) => !predictionMap.has(item.id) && !isPredictionLocked(item.kickoff_at));
+    const nextOpen = matches.find(
+      (item) =>
+        isMatchPredictionOpen(item) &&
+        !predictionMap.has(item.id) &&
+        !isPredictionLocked(item.kickoff_at)
+    );
     if (nextOpen) redirect(`/spiele/${nextOpen.id}?${savedQuery}&mode=tippen`);
     redirect("/tippen?done=1");
   }
@@ -271,7 +299,28 @@ export async function saveResultAction(formData: FormData) {
   const homeScore = formNumber(formData, "homeScore");
   const awayScore = formNumber(formData, "awayScore");
   const status = formString(formData, "status") || "finished";
+  const resultDuration = formString(formData, "resultDuration") || "REGULAR";
+  const selectedWinnerTeamId = formString(formData, "winnerTeamId") || null;
+  const extraTimeHomeScore = optionalFormNumber(formData, "extraTimeHomeScore");
+  const extraTimeAwayScore = optionalFormNumber(formData, "extraTimeAwayScore");
+  const penaltyHomeScore = optionalFormNumber(formData, "penaltyHomeScore");
+  const penaltyAwayScore = optionalFormNumber(formData, "penaltyAwayScore");
   const returnTo = formString(formData, "returnTo") || "/admin/spiele";
+  const match = await getMatch(matchId);
+  const winnerTeamId =
+    homeScore > awayScore
+      ? match.home_team_id
+      : awayScore > homeScore
+        ? match.away_team_id
+        : selectedWinnerTeamId;
+  if (
+    status === "finished" &&
+    isKnockoutMatch(match) &&
+    winnerTeamId !== match.home_team_id &&
+    winnerTeamId !== match.away_team_id
+  ) {
+    redirect(`${returnTo}&error=ko-sieger-fehlt#match-${matchId}`);
+  }
   const supabase = createServerSupabaseClient();
 
   const { error } = await supabase
@@ -279,6 +328,16 @@ export async function saveResultAction(formData: FormData) {
     .update({
       home_score: homeScore,
       away_score: awayScore,
+      regular_home_score: homeScore,
+      regular_away_score: awayScore,
+      extra_time_home_score: extraTimeHomeScore,
+      extra_time_away_score: extraTimeAwayScore,
+      penalty_home_score: penaltyHomeScore,
+      penalty_away_score: penaltyAwayScore,
+      result_duration: resultDuration,
+      winner_team_id: status === "finished" ? winnerTeamId : null,
+      penalty_winner_team_id:
+        status === "finished" && resultDuration === "PENALTY_SHOOTOUT" ? winnerTeamId : null,
       status,
       updated_at: new Date().toISOString()
     })
@@ -288,6 +347,7 @@ export async function saveResultAction(formData: FormData) {
   revalidateTag("matches");
   await recalculateMatch(matchId);
   await evaluateCompletedGroupWinnerBonuses();
+  await updateKnockoutBracket();
   revalidateTag("rankings");
   revalidatePath("/admin/spiele");
   revalidatePath("/rangliste");
@@ -304,6 +364,7 @@ export async function recalculateMatchAction(formData: FormData) {
   const returnTo = formString(formData, "returnTo") || "/admin/spiele";
   await recalculateMatch(matchId);
   await evaluateCompletedGroupWinnerBonuses();
+  await updateKnockoutBracket();
   revalidateTag("matches");
   revalidateTag("rankings");
   revalidatePath("/admin/spiele");
@@ -311,6 +372,27 @@ export async function recalculateMatchAction(formData: FormData) {
   revalidatePath("/dashboard");
   const nextHash = returnTo.includes("filter=faellig") ? await nextDueResultHash() : null;
   redirectWithResult(returnTo, "recalculated", nextHash);
+}
+
+export async function updateKnockoutBracketAction(formData: FormData) {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/dashboard?error=keine-adminrechte");
+
+  const returnTo = formString(formData, "returnTo") || "/admin/spiele?filter=alle";
+  const report = await updateKnockoutBracket();
+  revalidateTag("matches");
+  revalidateTag("rankings");
+  revalidatePath("/admin");
+  revalidatePath("/admin/spiele");
+  revalidatePath("/dashboard");
+  revalidatePath("/spiele");
+  revalidatePath("/finalrunde");
+
+  redirectWithParams(returnTo, {
+    result: "knockout-updated",
+    updated: report.updated,
+    opened: report.opened
+  });
 }
 
 export async function syncLiveResultsAction(formData: FormData) {
@@ -326,6 +408,7 @@ export async function syncLiveResultsAction(formData: FormData) {
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
   revalidatePath("/gruppen");
+  revalidatePath("/finalrunde");
 
   redirectWithParams(returnTo, {
     result: report.ok ? "live-sync" : "live-sync-error",

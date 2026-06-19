@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { requirePlayer } from "@/lib/auth";
 import { getMatch, getMatches, getPlayerPredictions, getPrediction, getVisiblePredictions } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
+import { isMatchPredictionOpen } from "@/lib/knockout";
 import { isPredictionLocked } from "@/lib/scoring";
 
 type MatchForName = Awaited<ReturnType<typeof getMatch>>;
@@ -68,7 +69,15 @@ export default async function MatchDetailPage({ params, searchParams }: { params
   const locked = isPredictionLocked(match.kickoff_at);
   const visiblePredictions = locked ? await getVisiblePredictions(id) : [];
   const predictionMap = new Map(predictions.map((item) => [item.match_id, item]));
-  const nextOpen = player.is_admin ? null : matches.find((item) => !predictionMap.has(item.id) && !isPredictionLocked(item.kickoff_at) && item.id !== id);
+  const nextOpen = player.is_admin
+    ? null
+    : matches.find(
+        (item) =>
+          isMatchPredictionOpen(item) &&
+          !predictionMap.has(item.id) &&
+          !isPredictionLocked(item.kickoff_at) &&
+          item.id !== id
+      );
   const guidedMode = query.mode === "tippen";
   const savedHomeScore = query.home ?? prediction?.home_score;
   const savedAwayScore = query.away ?? prediction?.away_score;
@@ -81,7 +90,12 @@ export default async function MatchDetailPage({ params, searchParams }: { params
       : query.saved
         ? `${savedPrefix}.`
         : null;
-  const deadlineError = "Dieses Spiel hat schon begonnen. Dein Tipp ist jetzt gesperrt.";
+  const deadlineError =
+    query.error === "spiel-noch-nicht-freigegeben"
+      ? "Diese Finalrunden-Begegnung ist noch nicht freigegeben."
+      : query.error === "weiterkommer-fehlt"
+        ? "Bitte wähle aus, welche Mannschaft weiterkommt."
+        : "Dieses Spiel hat schon begonnen. Dein Tipp ist jetzt gesperrt.";
   const hasResult = match.status === "finished" && match.home_score !== null && match.away_score !== null;
   const tipHighlights = locked ? familyTipHighlights(visiblePredictions, match, hasResult) : [];
 

@@ -58,6 +58,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
               <Link className="mex-nav-link" href="/rangliste">Rangliste</Link>
               <Link className="mex-nav-link" href="/meine-tipps">Meine Tipps</Link>
               <Link className="mex-nav-link" href="/spiele">Spiele</Link>
+              <Link className="mex-nav-link" href="/finalrunde">Finalrunde</Link>
               <Link className="mex-nav-link" href="/gruppen">Gruppen</Link>
               <Link className="mex-nav-link" href="/bonus">Bonus</Link>
               <Link className="mex-nav-link" href="/regeln">Regeln</Link>

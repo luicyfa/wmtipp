@@ -4,9 +4,10 @@ import {
   statusFromFootballData,
   type FootballDataMatch
 } from "@/lib/football-data";
+import { updateKnockoutBracket } from "@/lib/knockout";
 import { evaluateCompletedGroupWinnerBonuses, recalculateMatch, revalidateResultViews } from "@/lib/results";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Match } from "@/lib/types";
+import type { Match, Team } from "@/lib/types";
 
 type SyncableMatch = Match & {
   api_football_fixture_id: number | null;
@@ -104,7 +105,8 @@ function findFixtureForMatch(match: SyncableMatch, externalMatches: FootballData
   const awayLabel = match.away_team?.name ?? match.away_team_label;
 
   if (!homeLabel || !awayLabel || /\d/.test(homeLabel) || /\d/.test(awayLabel)) {
-    return null;
+    const kickoffMatches = externalMatches.filter((externalMatch) => kickoffDiffMinutes(match, externalMatch) <= 30);
+    return kickoffMatches.length === 1 ? kickoffMatches[0] : null;
   }
 
   return externalMatches.find((externalMatch) => {
@@ -115,11 +117,15 @@ function findFixtureForMatch(match: SyncableMatch, externalMatches: FootballData
   }) ?? null;
 }
 
+function localTeamId(apiName: string | null | undefined, teams: Team[]) {
+  return teams.find((team) => namesMatch(team.name, apiName))?.id ?? null;
+}
+
 export async function syncResultsFromFootballData(): Promise<ResultSyncReport> {
   const supabase = createServerSupabaseClient();
   const now = new Date();
   const windowStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-  const windowEndDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const windowEndDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
   const windowStart = windowStartDate.toISOString();
   const windowEnd = windowEndDate.toISOString();
   const { data: matches, error } = await supabase
@@ -132,6 +138,12 @@ export async function syncResultsFromFootballData(): Promise<ResultSyncReport> {
   if (error) throw error;
 
   const syncableMatches = (matches ?? []) as SyncableMatch[];
+  const { data: teamsData, error: teamsError } = await supabase
+    .from("teams")
+    .select("*")
+    .eq("placeholder", false);
+  if (teamsError) throw teamsError;
+  const teams = (teamsData ?? []) as Team[];
 
   if (!syncableMatches.length) {
     return {
@@ -173,22 +185,54 @@ export async function syncResultsFromFootballData(): Promise<ResultSyncReport> {
     }
 
     const fixtureId = externalMatch.id;
+    const externalHomeTeamId = localTeamId(externalMatch.homeTeam?.name, teams);
+    const externalAwayTeamId = localTeamId(externalMatch.awayTeam?.name, teams);
+    const homeTeamId = match.home_team_id ?? externalHomeTeamId;
+    const awayTeamId = match.away_team_id ?? externalAwayTeamId;
     const status = statusFromFootballData(externalMatch.status);
-    const { homeScore, awayScore } = scoresFromFootballData(externalMatch);
+    const {
+      homeScore,
+      awayScore,
+      extraTimeHomeScore,
+      extraTimeAwayScore,
+      penaltyHomeScore,
+      penaltyAwayScore,
+      duration,
+      winnerSide
+    } = scoresFromFootballData(externalMatch);
+    const winnerTeamId =
+      winnerSide === "home" ? homeTeamId : winnerSide === "away" ? awayTeamId : null;
     const patch = {
       api_football_fixture_id: fixtureId,
+      home_team_id: homeTeamId,
+      away_team_id: awayTeamId,
+      prediction_open: Boolean(homeTeamId && awayTeamId && status === "scheduled"),
       status,
       home_score: status === "finished" || status === "live" ? homeScore : match.home_score,
       away_score: status === "finished" || status === "live" ? awayScore : match.away_score,
+      regular_home_score: status === "finished" || status === "live" ? homeScore : match.regular_home_score,
+      regular_away_score: status === "finished" || status === "live" ? awayScore : match.regular_away_score,
+      extra_time_home_score: extraTimeHomeScore,
+      extra_time_away_score: extraTimeAwayScore,
+      penalty_home_score: penaltyHomeScore,
+      penalty_away_score: penaltyAwayScore,
+      result_duration: duration,
+      winner_team_id: status === "finished" ? winnerTeamId : match.winner_team_id,
+      penalty_winner_team_id:
+        status === "finished" && duration === "PENALTY_SHOOTOUT" ? winnerTeamId : match.penalty_winner_team_id,
       last_synced_at: new Date().toISOString(),
       sync_source: `football-data:${competition}:${season}`
     };
 
     const hasChanged =
       patch.api_football_fixture_id !== match.api_football_fixture_id ||
+      patch.home_team_id !== match.home_team_id ||
+      patch.away_team_id !== match.away_team_id ||
+      patch.prediction_open !== Boolean(match.prediction_open) ||
       patch.status !== match.status ||
       patch.home_score !== match.home_score ||
-      patch.away_score !== match.away_score;
+      patch.away_score !== match.away_score ||
+      patch.winner_team_id !== match.winner_team_id;
 
     if (!hasChanged) {
       skipped += 1;
@@ -212,6 +256,7 @@ export async function syncResultsFromFootballData(): Promise<ResultSyncReport> {
 
   if (updated > 0) {
     await evaluateCompletedGroupWinnerBonuses();
+    await updateKnockoutBracket();
     revalidateResultViews();
   }
 

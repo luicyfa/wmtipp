@@ -19,6 +19,7 @@ export type Team = {
 };
 
 export type MatchStatus = "scheduled" | "live" | "finished";
+export type ResultDuration = "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT";
 
 export type Match = {
   id: string;
@@ -32,8 +33,16 @@ export type Match = {
   kickoff_at: string;
   venue: string | null;
   status: MatchStatus;
+  prediction_open?: boolean;
   home_score: number | null;
   away_score: number | null;
+  regular_home_score?: number | null;
+  regular_away_score?: number | null;
+  extra_time_home_score?: number | null;
+  extra_time_away_score?: number | null;
+  penalty_home_score?: number | null;
+  penalty_away_score?: number | null;
+  result_duration?: ResultDuration;
   winner_team_id: string | null;
   penalty_winner_team_id: string | null;
   api_football_fixture_id?: number | null;
@@ -57,6 +66,9 @@ export type Prediction = {
   correct_goal_difference: boolean;
   correct_home_goals: boolean;
   correct_away_goals: boolean;
+  advancing_team_id?: string | null;
+  correct_advancing_team?: boolean;
+  advancing_points?: number;
   locked_at: string | null;
   created_at: string;
   updated_at: string;

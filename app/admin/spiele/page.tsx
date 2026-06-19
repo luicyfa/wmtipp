@@ -4,10 +4,11 @@ import { AppHeader } from "@/components/AppHeader";
 import { AdminNav } from "@/components/AdminNav";
 import { FeedbackToast } from "@/components/FeedbackToast";
 import { SubmitButton } from "@/components/SubmitButton";
-import { saveResultAction, recalculateMatchAction, syncLiveResultsAction } from "@/app/actions";
+import { saveResultAction, recalculateMatchAction, syncLiveResultsAction, updateKnockoutBracketAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getMatches } from "@/lib/data";
 import { addDays, formatDateTime, startOfLocalDay } from "@/lib/dates";
+import { isKnockoutMatch } from "@/lib/knockout";
 
 const statusLabels = {
   scheduled: "Offen",
@@ -48,6 +49,7 @@ export default async function AdminMatchesPage({
     updated?: string;
     recalculated?: string;
     linked?: string;
+    opened?: string;
     message?: string;
   }>;
 }) {
@@ -107,6 +109,8 @@ export default async function AdminMatchesPage({
           ? `Live-Abgleich fertig: ${params.updated ?? "0"} Spiele aktualisiert, ${params.recalculated ?? "0"} Punkte neu berechnet, ${params.linked ?? "0"} neu verknüpft.`
           : params.result === "live-sync-error"
             ? params.message ?? "Live-Abgleich hat gerade nicht geklappt. Du kannst Ergebnisse weiter manuell eintragen."
+          : params.result === "knockout-updated"
+            ? `Finalrunde aktualisiert: ${params.updated ?? "0"} Begegnungen angepasst, ${params.opened ?? "0"} neu zum Tippen geöffnet.`
         : null;
 
   return (
@@ -142,6 +146,12 @@ export default async function AdminMatchesPage({
             <input type="hidden" name="returnTo" value={returnTo} />
             <SubmitButton pendingText="Aktualisiert..." className="focus-ring w-full rounded-xl bg-amber-950 px-4 py-3 text-center font-black text-white sm:w-auto">
               Live-Ergebnisse aktualisieren
+            </SubmitButton>
+          </form>
+          <form action={updateKnockoutBracketAction} className="mt-2">
+            <input type="hidden" name="returnTo" value={returnTo} />
+            <SubmitButton pendingText="Prüft Finalrunde..." className="focus-ring w-full rounded-xl bg-white/70 px-4 py-3 text-center font-black text-amber-950 sm:w-auto">
+              Finalrunde aktualisieren
             </SubmitButton>
           </form>
           {nextMissingResult ? (
@@ -204,27 +214,71 @@ export default async function AdminMatchesPage({
                   {getStatusLabel(match.status)}
                 </span>
               </div>
-              <form action={saveResultAction} className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_170px_auto] sm:items-end">
+              <form action={saveResultAction} className="grid gap-3">
                 <input type="hidden" name="matchId" value={match.id} />
                 <input type="hidden" name="returnTo" value={returnTo} />
-                <label className="text-sm font-bold">
-                  Heimtore
-                  <input name="homeScore" type="number" min="0" defaultValue={match.home_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
-                </label>
-                <span className="hidden pb-4 text-2xl font-black text-slate-300 sm:block">:</span>
-                <label className="text-sm font-bold">
-                  Auswärtstore
-                  <input name="awayScore" type="number" min="0" defaultValue={match.away_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
-                </label>
-                <select
-                  name="status"
-                  defaultValue={activeFilter === "faellig" && match.status !== "finished" ? "finished" : match.status}
-                  className="focus-ring rounded-xl border border-slate-200 px-4 py-4 font-semibold"
-                >
-                  <option value="scheduled">Offen</option>
-                  <option value="live">Gesperrt</option>
-                  <option value="finished">Beendet</option>
-                </select>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_170px] sm:items-end">
+                  <label className="text-sm font-bold">
+                    Tore nach 90 Minuten
+                    <input name="homeScore" type="number" min="0" defaultValue={match.regular_home_score ?? match.home_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
+                  </label>
+                  <span className="hidden pb-4 text-2xl font-black text-slate-300 sm:block">:</span>
+                  <label className="text-sm font-bold">
+                    Tore nach 90 Minuten
+                    <input name="awayScore" type="number" min="0" defaultValue={match.regular_away_score ?? match.away_score ?? 0} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 px-4 py-5 text-center text-4xl font-black" />
+                  </label>
+                  <select
+                    name="status"
+                    defaultValue={activeFilter === "faellig" && match.status !== "finished" ? "finished" : match.status}
+                    className="focus-ring rounded-xl border border-slate-200 px-4 py-4 font-semibold"
+                  >
+                    <option value="scheduled">Offen</option>
+                    <option value="live">Gesperrt</option>
+                    <option value="finished">Beendet</option>
+                  </select>
+                </div>
+                {isKnockoutMatch(match) ? (
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <label className="text-sm font-bold">
+                        Entscheidung
+                        <select name="resultDuration" defaultValue={match.result_duration ?? "REGULAR"} className="focus-ring mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3">
+                          <option value="REGULAR">Nach 90 Minuten</option>
+                          <option value="EXTRA_TIME">Nach Verlängerung</option>
+                          <option value="PENALTY_SHOOTOUT">Im Elfmeterschießen</option>
+                        </select>
+                      </label>
+                      <label className="text-sm font-bold">
+                        Stand nach Verlängerung
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          <input aria-label="Heimtore nach Verlängerung" name="extraTimeHomeScore" type="number" min="0" defaultValue={match.extra_time_home_score ?? ""} className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-center font-black" />
+                          <input aria-label="Auswärtstore nach Verlängerung" name="extraTimeAwayScore" type="number" min="0" defaultValue={match.extra_time_away_score ?? ""} className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-center font-black" />
+                        </div>
+                      </label>
+                      <label className="text-sm font-bold">
+                        Elfmeterschießen
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          <input aria-label="Heimtore Elfmeterschießen" name="penaltyHomeScore" type="number" min="0" defaultValue={match.penalty_home_score ?? ""} className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-center font-black" />
+                          <input aria-label="Auswärtstore Elfmeterschießen" name="penaltyAwayScore" type="number" min="0" defaultValue={match.penalty_away_score ?? ""} className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-center font-black" />
+                        </div>
+                      </label>
+                    </div>
+                    <fieldset className="mt-3">
+                      <legend className="text-sm font-black">Wer ist weitergekommen?</legend>
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {[
+                          [match.home_team_id, teamName(match, "home")],
+                          [match.away_team_id, teamName(match, "away")]
+                        ].map(([teamId, label]) => (
+                          <label key={teamId ?? label} className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 font-bold">
+                            <input type="radio" name="winnerTeamId" value={teamId ?? ""} defaultChecked={match.winner_team_id === teamId} className="h-5 w-5 accent-pitch" />
+                            {label}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
+                ) : null}
                 <SubmitButton pendingText="Speichert..." className="focus-ring rounded-xl bg-pitch px-4 py-5 font-black text-white">
                   {activeFilter === "faellig" ? "Speichern & nächstes" : "Ergebnis speichern"}
                 </SubmitButton>

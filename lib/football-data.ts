@@ -19,7 +19,20 @@ export type FootballDataMatch = {
   };
   score?: {
     winner?: string | null;
+    duration?: "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT" | null;
     fullTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
+    regularTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
+    extraTime?: {
+      home?: number | null;
+      away?: number | null;
+    };
+    penalties?: {
       home?: number | null;
       away?: number | null;
     };
@@ -56,9 +69,16 @@ export function statusFromFootballData(status: FootballDataMatch["status"]) {
 }
 
 export function scoresFromFootballData(match: FootballDataMatch) {
+  const regular = match.score?.regularTime ?? match.score?.fullTime;
   return {
-    homeScore: typeof match.score?.fullTime?.home === "number" ? match.score.fullTime.home : null,
-    awayScore: typeof match.score?.fullTime?.away === "number" ? match.score.fullTime.away : null
+    homeScore: typeof regular?.home === "number" ? regular.home : null,
+    awayScore: typeof regular?.away === "number" ? regular.away : null,
+    extraTimeHomeScore: typeof match.score?.extraTime?.home === "number" ? match.score.extraTime.home : null,
+    extraTimeAwayScore: typeof match.score?.extraTime?.away === "number" ? match.score.extraTime.away : null,
+    penaltyHomeScore: typeof match.score?.penalties?.home === "number" ? match.score.penalties.home : null,
+    penaltyAwayScore: typeof match.score?.penalties?.away === "number" ? match.score.penalties.away : null,
+    duration: match.score?.duration ?? "REGULAR",
+    winnerSide: match.score?.winner === "HOME_TEAM" ? "home" : match.score?.winner === "AWAY_TEAM" ? "away" : null
   };
 }
 

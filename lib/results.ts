@@ -75,5 +75,6 @@ export function revalidateResultViews(matchId?: string) {
   revalidatePath("/rangliste");
   revalidatePath("/dashboard");
   revalidatePath("/gruppen");
+  revalidatePath("/finalrunde");
   if (matchId) revalidatePath(`/spiele/${matchId}`);
 }

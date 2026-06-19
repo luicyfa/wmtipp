@@ -102,6 +102,16 @@ export default async function RulesPage() {
             Beim exakten Ergebnis werden keine Zusatzpunkte obendrauf gerechnet. Einzelne richtig getippte Team-Tore bringen keinen Zusatzpunkt. Ein perfekter Tipp bleibt bei 5 Punkten.
           </p>
         </section>
+
+        <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
+          <h2 className="text-xl font-black">Finalrunde</h2>
+          <div className="mt-3 space-y-2 text-sm font-semibold text-slate-600">
+            <p>Bei K.-o.-Spielen wird der Ergebnistipp nach 90 Minuten gewertet.</p>
+            <p>Für die richtige Mannschaft, die weiterkommt, gibt es zusätzlich 1 Punkt.</p>
+            <p>Verlängerung und Elfmeterschießen werden separat angezeigt und verändern den 90-Minuten-Ergebnistipp nicht.</p>
+            <p>Eine Begegnung wird erst tippbar, wenn beide Mannschaften feststehen.</p>
+          </div>
+        </section>
       </main>
     </>
   );

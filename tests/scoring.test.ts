@@ -87,8 +87,22 @@ describe("calculatePredictionPoints", () => {
       correct_tendency: false,
       correct_goal_difference: false,
       correct_home_goals: false,
-      correct_away_goals: false
+      correct_away_goals: false,
+      correct_advancing_team: false,
+      advancing_points: 0
     });
+  });
+
+  it("vergibt im K.-o.-Spiel einen Zusatzpunkt fuer das richtige Weiterkommen", () => {
+    const result = calculatePredictionPoints(
+      { home_score: 1, away_score: 1, advancing_team_id: "team-home" },
+      { home_score: 1, away_score: 1, winner_team_id: "team-home" },
+      rules
+    );
+
+    assert.equal(result.points, 6);
+    assert.equal(result.correct_advancing_team, true);
+    assert.equal(result.advancing_points, 1);
   });
 });
 
