@@ -69,7 +69,11 @@ export function statusFromFootballData(status: FootballDataMatch["status"]) {
 }
 
 export function scoresFromFootballData(match: FootballDataMatch) {
-  const regular = match.score?.regularTime ?? match.score?.fullTime;
+  const regularTime = match.score?.regularTime;
+  const regular =
+    typeof regularTime?.home === "number" && typeof regularTime?.away === "number"
+      ? regularTime
+      : match.score?.fullTime;
   return {
     homeScore: typeof regular?.home === "number" ? regular.home : null,
     awayScore: typeof regular?.away === "number" ? regular.away : null,
