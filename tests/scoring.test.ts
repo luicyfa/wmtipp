@@ -53,14 +53,27 @@ describe("calculatePredictionPoints", () => {
 
   it("erkennt richtige Heimtore", () => {
     const result = score([2, 0], [2, 1]);
-    assert.equal(result.points, 4);
+    assert.equal(result.points, 3);
     assert.equal(result.correct_home_goals, true);
   });
 
   it("erkennt richtige Auswaertstore", () => {
     const result = score([3, 1], [2, 1]);
-    assert.equal(result.points, 4);
+    assert.equal(result.points, 3);
     assert.equal(result.correct_away_goals, true);
+  });
+
+  it("vergibt keinen Zusatzpunkt nur fuer null Gegentore", () => {
+    const result = score([2, 0], [6, 0]);
+    assert.equal(result.points, 3);
+    assert.equal(result.correct_away_goals, true);
+    assert.equal(result.correct_goal_difference, false);
+  });
+
+  it("vergibt vier Punkte fuer die richtige Tordifferenz", () => {
+    const result = score([7, 1], [6, 0]);
+    assert.equal(result.points, 4);
+    assert.equal(result.correct_goal_difference, true);
   });
 
   it("vergibt 0 Punkte ohne korrekte Einzelwertung", () => {

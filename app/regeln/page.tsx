@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2, Goal, ListChecks, Medal, Trophy } from "lucide-react";
+import { CheckCircle2, ListChecks, Medal, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { requirePlayer } from "@/lib/auth";
 
 const examples = [
   ["Spiel 2:1, Tipp 2:1", "5 Punkte", "Exakt richtig"],
   ["Spiel 2:1, Tipp 3:2", "4 Punkte", "Tendenz und Tordifferenz richtig"],
-  ["Spiel 2:1, Tipp 2:0", "4 Punkte", "Tendenz und Heimtore richtig"],
+  ["Spiel 2:1, Tipp 2:0", "3 Punkte", "Nur die Tendenz ist richtig"],
   ["Spiel 1:1, Tipp 2:2", "4 Punkte", "Unentschieden und Tordifferenz richtig"],
+  ["Spiel 6:0, Tipp 7:1", "4 Punkte", "Tendenz und Tordifferenz richtig"],
   ["Spiel 2:1, Tipp 0:1", "0 Punkte", "Falsche Tendenz"]
 ];
 
@@ -27,7 +28,7 @@ export default async function RulesPage() {
           </p>
         </section>
 
-        <section className="mt-5 grid gap-3 sm:grid-cols-2">
+        <section className="mt-5 grid gap-3 sm:grid-cols-3">
           <article className="rounded-xl bg-sun p-4 text-amber-950 shadow-card">
             <div className="flex items-center gap-2">
               <Trophy className="h-6 w-6" />
@@ -55,14 +56,6 @@ export default async function RulesPage() {
             <p className="mt-2 text-sm text-slate-600">Zusätzlich, wenn die Tendenz stimmt und die Differenz passt.</p>
           </article>
 
-          <article className="rounded-xl bg-white p-4 shadow-card">
-            <div className="flex items-center gap-2">
-              <Goal className="h-6 w-6 text-pitch" />
-              <h2 className="text-xl font-black">Team-Tore</h2>
-            </div>
-            <p className="mt-3 text-4xl font-black text-pitch">+1 je Team</p>
-            <p className="mt-2 text-sm text-slate-600">Zusätzlich, wenn die Tendenz stimmt und einzelne Team-Tore richtig sind.</p>
-          </article>
         </section>
 
         <section className="mt-5 rounded-xl bg-white p-4 shadow-card">
@@ -106,7 +99,7 @@ export default async function RulesPage() {
         <section className="mt-5 rounded-xl bg-pitch/10 p-4 text-pitch">
           <h2 className="font-black">Wichtig</h2>
           <p className="mt-2 text-sm font-semibold">
-            Beim exakten Ergebnis werden nicht alle Zusatzpunkte obendrauf gerechnet. Ein perfekter Tipp bleibt bei 5 Punkten.
+            Beim exakten Ergebnis werden keine Zusatzpunkte obendrauf gerechnet. Einzelne richtig getippte Team-Tore bringen keinen Zusatzpunkt. Ein perfekter Tipp bleibt bei 5 Punkten.
           </p>
         </section>
       </main>

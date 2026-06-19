@@ -69,8 +69,6 @@ export function calculatePredictionPoints(
   if (correct_tendency) {
     points += scoreRules.tendency_points;
     if (correct_goal_difference) points += scoreRules.goal_difference_points;
-    if (correct_home_goals) points += scoreRules.team_goals_points;
-    if (correct_away_goals) points += scoreRules.team_goals_points;
   }
 
   return {

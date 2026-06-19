@@ -148,6 +148,13 @@ export default async function DashboardPage({
           </div>
         </section>
 
+        <section className="mt-4 rounded-xl border border-pitch/15 bg-white px-4 py-3 text-sm shadow-sm">
+          <p className="font-black text-pitch">Punktewertung angepasst</p>
+          <p className="mt-1 font-semibold text-slate-600">
+            Zusatzpunkte gibt es jetzt nur noch für die richtige Tordifferenz. Einzelne Team-Tore zählen nicht mehr extra; bisherige Spiele wurden neu berechnet.
+          </p>
+        </section>
+
         <section id="spiele" className="mt-6 scroll-mt-36">
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
