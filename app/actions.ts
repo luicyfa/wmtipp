@@ -140,11 +140,12 @@ export async function savePredictionAction(formData: FormData) {
 
   if (mode === "tippen") {
     const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);
-    const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
+    const predictedMatchIds = new Set(predictions.map((prediction) => prediction.match_id));
+    predictedMatchIds.add(matchId);
     const nextOpen = matches.find(
       (item) =>
         isMatchPredictionOpen(item) &&
-        !predictionMap.has(item.id) &&
+        !predictedMatchIds.has(item.id) &&
         !isPredictionLocked(item.kickoff_at)
     );
     if (nextOpen) redirect(`/spiele/${nextOpen.id}?${savedQuery}&mode=tippen`);

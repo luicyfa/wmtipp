@@ -44,6 +44,7 @@ export function PredictionForm({
             : `Tipp möglich bis: ${formatDateTime(match.kickoff_at)}`}
       </p>
       <PredictionScoreControls
+        key={match.id}
         homeLabel={homeLabel}
         awayLabel={awayLabel}
         homeTeamId={match.home_team_id}
