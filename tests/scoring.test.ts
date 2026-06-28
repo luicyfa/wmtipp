@@ -6,7 +6,7 @@ const rules = {
   exact_score_points: 5,
   tendency_points: 3,
   goal_difference_points: 1,
-  team_goals_points: 1
+  team_goals_points: 0
 };
 
 function score(prediction: [number, number], match: [number | null, number | null]) {
@@ -103,6 +103,18 @@ describe("calculatePredictionPoints", () => {
     assert.equal(result.points, 6);
     assert.equal(result.correct_advancing_team, true);
     assert.equal(result.advancing_points, 1);
+  });
+
+  it("vergibt den Weiterkommer-Zusatzpunkt nur bei getipptem Unentschieden", () => {
+    const result = calculatePredictionPoints(
+      { home_score: 2, away_score: 1, advancing_team_id: "team-home" },
+      { home_score: 2, away_score: 1, winner_team_id: "team-home" },
+      rules
+    );
+
+    assert.equal(result.points, 5);
+    assert.equal(result.correct_advancing_team, false);
+    assert.equal(result.advancing_points, 0);
   });
 });
 

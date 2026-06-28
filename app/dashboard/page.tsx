@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, Calendar, CheckCircle2, Medal, PlusSquare, Trophy } from "lucide-react";
+import { AlertCircle, Award, Calendar, CheckCircle2, Medal, PlusSquare, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
 import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/data";
@@ -53,6 +53,11 @@ export default async function DashboardPage({
   });
   const selectedDay = days.find((day) => day.key === selectedDayKey) ?? days[1];
   const selectedMatches = selectedDay.matches;
+  const groupMatches = matches.filter((match) => match.round === "Gruppenphase");
+  const finishedGroupMatches = groupMatches.filter(
+    (match) => match.status === "finished" && match.home_score !== null && match.away_score !== null
+  );
+  const groupStageComplete = groupMatches.length > 0 && finishedGroupMatches.length === groupMatches.length;
   const selectedOpenTips = selectedMatches.filter(
     (match) =>
       isMatchPredictionOpen(match) &&
@@ -189,6 +194,25 @@ export default async function DashboardPage({
             </Link>
           </div>
         </section>
+
+        {groupStageComplete ? (
+          <section className="mt-4 rounded-xl bg-white px-4 py-4 shadow-card">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-2 font-black text-pitch">
+                  <Award className="h-5 w-5" />
+                  Vorrunde ausgewertet
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  Deine Spielpunkte, Gruppensieger-Boni und die kleine Familien-Bilanz sind fertig.
+                </p>
+              </div>
+              <Link href="/vorrunde" className="shrink-0 rounded-xl bg-sun px-3 py-2 text-sm font-black text-amber-950">
+                Ansehen
+              </Link>
+            </div>
+          </section>
+        ) : null}
 
         <section id="spiele" className="mt-6 scroll-mt-36">
           <div className="mb-3 flex items-end justify-between gap-3">

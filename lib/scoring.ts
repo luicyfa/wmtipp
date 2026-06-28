@@ -15,7 +15,7 @@ export const defaultScoreRules: ScoreRules = {
   exact_score_points: 5,
   tendency_points: 3,
   goal_difference_points: 1,
-  team_goals_points: 1
+  team_goals_points: 0
 };
 
 type ScoreLike = Pick<Prediction, "home_score" | "away_score"> & {
@@ -53,7 +53,9 @@ export function calculatePredictionPoints(
 
   const exact =
     prediction.home_score === match.home_score && prediction.away_score === match.away_score;
+  const needsAdvancingPick = prediction.home_score === prediction.away_score;
   const correctAdvancingTeam = Boolean(
+    needsAdvancingPick &&
     prediction.advancing_team_id &&
     match.winner_team_id &&
     prediction.advancing_team_id === match.winner_team_id

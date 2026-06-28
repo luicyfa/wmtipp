@@ -99,6 +99,7 @@ export async function savePredictionAction(formData: FormData) {
   const awayScore = formNumber(formData, "awayScore");
   const advancingTeamId = formString(formData, "advancingTeamId") || null;
   const match = await getMatch(matchId);
+  const needsAdvancingPick = isKnockoutMatch(match) && homeScore === awayScore;
 
   if (!isMatchPredictionOpen(match)) {
     redirect(`/spiele/${matchId}?error=spiel-noch-nicht-freigegeben`);
@@ -107,7 +108,7 @@ export async function savePredictionAction(formData: FormData) {
     redirect(`/spiele/${matchId}?error=tippfrist-abgelaufen`);
   }
   if (
-    isKnockoutMatch(match) &&
+    needsAdvancingPick &&
     advancingTeamId !== match.home_team_id &&
     advancingTeamId !== match.away_team_id
   ) {
@@ -122,7 +123,7 @@ export async function savePredictionAction(formData: FormData) {
       match_id: matchId,
       home_score: homeScore,
       away_score: awayScore,
-      advancing_team_id: isKnockoutMatch(match) ? advancingTeamId : null,
+      advancing_team_id: needsAdvancingPick ? advancingTeamId : null,
       locked_at: null,
       updated_at: new Date().toISOString()
     },

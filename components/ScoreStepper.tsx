@@ -7,17 +7,23 @@ export function ScoreStepper({
   name,
   label,
   defaultValue,
-  disabled
+  disabled,
+  onValueChange
 }: {
   name: string;
   label: string;
   defaultValue: number;
   disabled: boolean;
+  onValueChange?: (value: number) => void;
 }) {
   const [value, setValue] = useState(defaultValue);
 
   function change(delta: number) {
-    setValue((current) => Math.max(0, Math.min(30, current + delta)));
+    setValue((current) => {
+      const next = Math.max(0, Math.min(30, current + delta));
+      onValueChange?.(next);
+      return next;
+    });
   }
 
   return (
@@ -42,7 +48,9 @@ export function ScoreStepper({
           disabled={disabled}
           onChange={(event) => {
             const next = Number(event.target.value);
-            setValue(Number.isFinite(next) ? Math.max(0, Math.min(30, next)) : 0);
+            const bounded = Number.isFinite(next) ? Math.max(0, Math.min(30, next)) : 0;
+            setValue(bounded);
+            onValueChange?.(bounded);
           }}
           className="focus-ring w-full border-x border-slate-200 px-2 py-3 text-center text-4xl font-black disabled:bg-slate-100"
           aria-label={label}
