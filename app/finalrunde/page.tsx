@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CheckCircle2, Clock3, LockKeyhole, Trophy } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, LockKeyhole, MapPin, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { StatusBadge } from "@/components/StatusBadge";
 import { requirePlayer } from "@/lib/auth";
 import { getMatches, getPlayerPredictions } from "@/lib/data";
 import { formatDateTime } from "@/lib/dates";
@@ -14,6 +15,17 @@ function teamName(match: MatchItem, side: "home" | "away") {
   const team = side === "home" ? match.home_team : match.away_team;
   const label = side === "home" ? match.home_team_label : match.away_team_label;
   return team?.name ?? label ?? "Noch offen";
+}
+
+function resultLabel(match: MatchItem) {
+  if (match.home_score === null || match.away_score === null) return null;
+  if (match.result_duration === "PENALTY_SHOOTOUT" && match.penalty_home_score !== null && match.penalty_away_score !== null) {
+    return `${match.home_score}:${match.away_score} · i.E. ${match.penalty_home_score}:${match.penalty_away_score}`;
+  }
+  if (match.result_duration === "EXTRA_TIME" && match.extra_time_home_score !== null && match.extra_time_away_score !== null) {
+    return `${match.home_score}:${match.away_score} · n.V. ${match.extra_time_home_score}:${match.extra_time_away_score}`;
+  }
+  return `${match.home_score}:${match.away_score}`;
 }
 
 export default async function FinalRoundPage() {
@@ -45,8 +57,22 @@ export default async function FinalRoundPage() {
             {openMatches.length ? `${missingOpen} K.-o.-Tipps offen` : "Die Finalrunde nimmt Form an"}
           </h1>
           <p className="mt-3 text-white/75">
-            Gewertet wird das Ergebnis nach 90 Minuten. Für die richtige Mannschaft, die weiterkommt, gibt es einen Zusatzpunkt.
+            Alle K.-o.-Spiele auf einen Blick: wer gegen wen spielt, wann Anstoß ist und ob dein Tipp schon drin ist.
           </p>
+          <div className="mt-5 grid grid-cols-3 gap-2 text-center text-sm">
+            <div className="rounded-xl bg-white/10 p-3">
+              <p className="text-white/65">Tippbar</p>
+              <strong className="text-2xl">{openMatches.length}</strong>
+            </div>
+            <div className="rounded-xl bg-white/10 p-3">
+              <p className="text-white/65">Offen</p>
+              <strong className="text-2xl">{missingOpen}</strong>
+            </div>
+            <div className="rounded-xl bg-white/10 p-3">
+              <p className="text-white/65">Gesamt</p>
+              <strong className="text-2xl">{knockoutMatches.length}</strong>
+            </div>
+          </div>
           {missingOpen ? (
             <Link
               href="/tippen"
@@ -74,48 +100,86 @@ export default async function FinalRoundPage() {
                     {isCurrent ? "Aktuell" : `${roundMatches.length} Spiele`}
                   </span>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="overflow-hidden rounded-2xl bg-white shadow-card">
                   {roundMatches.map((match) => {
                     const released = isMatchPredictionOpen(match);
                     const locked = isPredictionLocked(match.kickoff_at);
                     const prediction = predictionMap.get(match.id);
-                    const card = (
-                      <article className={`rounded-xl p-4 shadow-card ${released ? "bg-white" : "bg-slate-100 text-slate-500"}`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-black uppercase text-pitch">
-                              Spiel {match.match_number ?? "-"} · {formatDateTime(match.kickoff_at)}
-                            </p>
-                            <h3 className="mt-1 text-lg font-black text-ink">
-                              {teamName(match, "home")} gegen {teamName(match, "away")}
+                    const result = resultLabel(match);
+                    const status =
+                      match.status === "finished" ? "finished" : prediction ? "predicted" : locked ? "live" : "missing";
+                    const winner =
+                      match.winner_team_id === match.home_team_id
+                        ? teamName(match, "home")
+                        : match.winner_team_id === match.away_team_id
+                          ? teamName(match, "away")
+                          : null;
+                    const content = (
+                      <article className={`border-b border-slate-100 p-4 last:border-b-0 ${released ? "bg-white" : "bg-slate-50"}`}>
+                        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase text-pitch">
+                              <span>Spiel {match.match_number ?? "-"}</span>
+                              <span className="inline-flex items-center gap-1 text-slate-500">
+                                <CalendarDays className="h-3.5 w-3.5" />
+                                {formatDateTime(match.kickoff_at)}
+                              </span>
+                            </div>
+                            <h3 className={`mt-2 text-lg font-black ${released ? "text-ink" : "text-slate-500"}`}>
+                              {teamName(match, "home")} <span className="text-slate-400">gegen</span> {teamName(match, "away")}
                             </h3>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
+                              {match.venue ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  {match.venue}
+                                </span>
+                              ) : null}
+                              {!released ? <span>Wartet noch auf die Mannschaften</span> : null}
+                              {winner ? <span>Weiter: {winner}</span> : null}
+                            </div>
                           </div>
-                          {prediction ? (
-                            <CheckCircle2 className="h-5 w-5 shrink-0 text-pitch" />
-                          ) : released && !locked ? (
-                            <Clock3 className="h-5 w-5 shrink-0 text-sun" />
-                          ) : (
-                            <LockKeyhole className="h-5 w-5 shrink-0 text-slate-400" />
-                          )}
+                          <div className="grid grid-cols-2 gap-2 md:min-w-64">
+                            <div className="rounded-xl bg-slate-50 px-3 py-2">
+                              <p className="text-xs font-bold text-slate-500">Ergebnis</p>
+                              <strong className="text-lg text-ink">{result ?? "-"}</strong>
+                            </div>
+                            <div className="rounded-xl bg-slate-50 px-3 py-2">
+                              <p className="text-xs font-bold text-slate-500">Dein Tipp</p>
+                              <strong className="text-lg text-ink">{prediction ? `${prediction.home_score}:${prediction.away_score}` : "-"}</strong>
+                            </div>
+                          </div>
                         </div>
-                        <p className="mt-3 text-sm font-semibold">
-                          {prediction
-                            ? `Dein Tipp: ${prediction.home_score}:${prediction.away_score}`
-                            : released && !locked
-                              ? "Jetzt tippbar"
-                              : released
-                                ? "Tippfrist beendet"
-                                : "Wartet auf Mannschaften oder Sieger"}
-                        </p>
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <StatusBadge status={status} />
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-slate-500">
+                            {prediction ? (
+                              <>
+                                <CheckCircle2 className="h-4 w-4 text-pitch" />
+                                Tipp gespeichert
+                              </>
+                            ) : released && !locked ? (
+                              <>
+                                <Clock3 className="h-4 w-4 text-sun" />
+                                Jetzt tippbar
+                              </>
+                            ) : (
+                              <>
+                                <LockKeyhole className="h-4 w-4 text-slate-400" />
+                                {released ? "Gesperrt" : "Noch nicht tippbar"}
+                              </>
+                            )}
+                          </span>
+                        </div>
                       </article>
                     );
 
                     return released ? (
-                      <Link key={match.id} href={`/spiele/${match.id}`} className="focus-ring block rounded-xl">
-                        {card}
+                      <Link key={match.id} href={`/spiele/${match.id}`} className="focus-ring block">
+                        {content}
                       </Link>
                     ) : (
-                      <div key={match.id}>{card}</div>
+                      <div key={match.id}>{content}</div>
                     );
                   })}
                 </div>
