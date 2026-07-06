@@ -49,10 +49,10 @@ export function PredictionScoreControls({
       </div>
 
       {needsAdvancingPick ? (
-        <fieldset className="mt-4" disabled={disabled}>
-          <legend className="text-sm font-black">Wer kommt weiter? · 1 Zusatzpunkt</legend>
-          <p className="mt-1 text-sm font-semibold text-slate-600">
-            Nur nötig, wenn du nach 90 Minuten ein Unentschieden tippst.
+        <fieldset className="mt-4 rounded-xl border-2 border-sun bg-sun/20 p-3" disabled={disabled}>
+          <legend className="px-1 text-sm font-black text-amber-950">Pflicht bei Unentschieden · Wer kommt weiter?</legend>
+          <p className="mt-1 text-sm font-black text-amber-950">
+            Bitte eine Mannschaft auswählen. Sonst kann der Tipp nicht gespeichert werden.
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {[
@@ -61,7 +61,7 @@ export function PredictionScoreControls({
             ].map(([teamId, label]) => (
               <label
                 key={teamId ?? label}
-                className="flex min-h-14 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 font-bold"
+                className="flex min-h-14 items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 py-3 font-bold text-ink"
               >
                 <input
                   type="radio"

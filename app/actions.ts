@@ -136,7 +136,7 @@ export async function savePredictionAction(formData: FormData) {
   revalidatePath("/meine-tipps");
   revalidatePath("/dashboard");
   revalidateTag("rankings");
-  const savedQuery = `saved=1&home=${homeScore}&away=${awayScore}${existingPrediction ? "&changed=1" : ""}`;
+  const savedQuery = `saved=1&savedMatch=${encodeURIComponent(matchId)}&home=${homeScore}&away=${awayScore}${needsAdvancingPick && advancingTeamId ? `&advancing=${encodeURIComponent(advancingTeamId)}` : ""}${existingPrediction ? "&changed=1" : ""}`;
 
   if (mode === "tippen") {
     const [matches, predictions] = await Promise.all([getMatches(), getPlayerPredictions(player.id)]);

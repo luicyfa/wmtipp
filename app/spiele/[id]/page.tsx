@@ -55,7 +55,7 @@ function familyTipHighlights(predictions: VisiblePrediction[], match: MatchForNa
   return counts.map((item) => `${item.count} ${item.count === 1 ? "Tipp sagt" : "Tipps sagen"}: ${item.label}.`);
 }
 
-export default async function MatchDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; mode?: string; home?: string; away?: string; changed?: string }> }) {
+export default async function MatchDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; mode?: string; home?: string; away?: string; changed?: string; savedMatch?: string; advancing?: string }> }) {
   const player = await requirePlayer();
   if (!player) redirect("/");
   const { id } = await params;
@@ -79,14 +79,19 @@ export default async function MatchDetailPage({ params, searchParams }: { params
           item.id !== id
       );
   const guidedMode = query.mode === "tippen";
+  const savedMatch = query.savedMatch ? matches.find((item) => item.id === query.savedMatch) ?? match : match;
   const savedHomeScore = query.home ?? prediction?.home_score;
   const savedAwayScore = query.away ?? prediction?.away_score;
   const savedPrefix = query.changed ? "Dein Tipp wurde geändert" : "Tipp gespeichert";
+  const savedAdvancingTeam =
+    query.advancing && savedMatch.home_team_id === query.advancing
+      ? teamName(savedMatch, "home")
+      : query.advancing && savedMatch.away_team_id === query.advancing
+        ? teamName(savedMatch, "away")
+        : null;
   const savedText =
-    query.saved && guidedMode
-      ? query.changed ? "Tipp geändert." : "Tipp gespeichert."
-      : query.saved && savedHomeScore !== undefined && savedAwayScore !== undefined
-      ? `${savedPrefix}: ${teamName(match, "home")} ${savedHomeScore}:${savedAwayScore} ${teamName(match, "away")}.`
+    query.saved && savedHomeScore !== undefined && savedAwayScore !== undefined
+      ? `${savedPrefix}: ${teamName(savedMatch, "home")} ${savedHomeScore}:${savedAwayScore} ${teamName(savedMatch, "away")}${savedAdvancingTeam ? ` · weiter: ${savedAdvancingTeam}` : ""}.`
       : query.saved
         ? `${savedPrefix}.`
         : null;
