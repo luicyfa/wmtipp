@@ -45,6 +45,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
               </Link>
               <Link className="mex-nav-link" href="/admin/teilnehmer">Teilnehmer</Link>
               <Link className="mex-nav-link" href="/rangliste">Rangliste</Link>
+              <Link className="mex-nav-link" href="/abschluss">Abschluss</Link>
               <Link className="mex-nav-link" href="/gruppen">Gruppen</Link>
               <Link className="mex-nav-link" href="/regeln">Regeln</Link>
             </>
@@ -56,6 +57,7 @@ export function AppHeader({ player }: { player: Pick<Player, "name" | "is_admin"
               </Link>
               <Link className="mex-nav-link-primary" href="/tippen">Tippen</Link>
               <Link className="mex-nav-link" href="/rangliste">Rangliste</Link>
+              <Link className="mex-nav-link" href="/abschluss">Abschluss</Link>
               <Link className="mex-nav-link" href="/meine-tipps">Meine Tipps</Link>
               <Link className="mex-nav-link" href="/spiele">Spiele</Link>
               <Link className="mex-nav-link" href="/finalrunde">Finalrunde</Link>

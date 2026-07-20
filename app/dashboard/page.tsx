@@ -284,6 +284,10 @@ export default async function DashboardPage({
                 </p>
               )}
             </div>
+
+            <Link href="/abschluss" className="focus-ring mt-4 flex justify-center rounded-xl bg-pitch px-4 py-3 text-center font-black text-white">
+              Abschluss-Auswertung ansehen
+            </Link>
           </section>
         ) : null}
 
