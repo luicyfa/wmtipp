@@ -134,6 +134,21 @@ export async function getBonusPredictions(playerId: string): Promise<BonusPredic
   return (data ?? []) as BonusPrediction[];
 }
 
+export async function getWorldChampionBonusPredictions(): Promise<BonusPrediction[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("bonus_predictions")
+    .select("*,team:teams(id,name,short_name),player:players!inner(id,name,is_admin,is_active)")
+    .eq("type", "world_champion")
+    .eq("player.is_admin", false)
+    .eq("player.is_active", true)
+    .order("points", { ascending: false })
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as BonusPrediction[];
+}
+
 export async function getGroupWinnerPredictions(playerId: string): Promise<BonusPrediction[]> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase

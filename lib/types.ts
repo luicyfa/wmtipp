@@ -85,6 +85,7 @@ export type BonusPrediction = {
   locked_at: string | null;
   created_at: string;
   team?: Pick<Team, "id" | "name" | "short_name"> | null;
+  player?: Pick<Player, "id" | "name" | "is_admin" | "is_active"> | null;
 };
 
 export type ScoreRules = {

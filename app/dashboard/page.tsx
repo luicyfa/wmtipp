@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, Award, Calendar, CheckCircle2, Medal, PlusSquare, Trophy } from "lucide-react";
+import { AlertCircle, Award, Calendar, CheckCircle2, Medal, PlusSquare, Sparkles, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { MatchCard } from "@/components/MatchCard";
-import { getBonusPredictions, getMatches, getPlayerPredictions } from "@/lib/data";
+import { getBonusPredictions, getMatches, getPlayerPredictions, getPlayers, getWorldChampionBonusPredictions } from "@/lib/data";
 import { requirePlayer } from "@/lib/auth";
 import { getRankings, rankForPlayer, rankForRow } from "@/lib/rankings";
 import { addDays, formatDateTime, formatDayHeading, startOfLocalDay } from "@/lib/dates";
@@ -34,11 +34,13 @@ export default async function DashboardPage({
   const params = await searchParams;
   const selectedDayKey: DayKey = isDayKey(params.tag) ? params.tag : "heute";
 
-  const [matches, predictions, rankings, bonusPredictions] = await Promise.all([
+  const [matches, predictions, rankings, bonusPredictions, worldChampionFamilyTips, players] = await Promise.all([
     getMatches(),
     getPlayerPredictions(player.id),
     getRankings(),
-    getBonusPredictions(player.id)
+    getBonusPredictions(player.id),
+    getWorldChampionBonusPredictions(),
+    getPlayers()
   ]);
   const predictionMap = new Map(predictions.map((prediction) => [prediction.match_id, prediction]));
   const today = startOfLocalDay();
@@ -81,6 +83,25 @@ export default async function DashboardPage({
   const nextMissing = missing[0] ?? null;
   const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
   const worldChampionPrediction = bonusPredictions.find((item) => item.type === "world_champion") ?? null;
+  const finalMatch = matches.find((match) => match.round === "Finale" && match.status === "finished" && match.winner_team_id);
+  const worldChampionName = finalMatch?.winner_team_id === finalMatch?.home_team_id
+    ? finalMatch.home_team?.name ?? finalMatch.home_team_label
+    : finalMatch?.winner_team_id === finalMatch?.away_team_id
+      ? finalMatch.away_team?.name ?? finalMatch.away_team_label
+      : null;
+  const correctWorldChampionTips = worldChampionFamilyTips.filter((item) => item.points > 0);
+  const worldChampionTipByPlayer = new Map(worldChampionFamilyTips.map((item) => [item.player_id, item]));
+  const worldChampionFamilyRows = players
+    .filter((item) => item.is_active && !item.is_admin)
+    .map((familyPlayer) => ({
+      player: familyPlayer,
+      tip: worldChampionTipByPlayer.get(familyPlayer.id) ?? null
+    }))
+    .sort((a, b) => {
+      const pointsDiff = (b.tip?.points ?? 0) - (a.tip?.points ?? 0);
+      if (pointsDiff !== 0) return pointsDiff;
+      return a.player.name.localeCompare(b.player.name, "de");
+    });
   const groupWinnerPredictions = bonusPredictions.filter((item) => item.type.startsWith("group_winner_"));
   const missingBonusTips = (worldChampionPrediction ? 0 : 1) + Math.max(0, 12 - groupWinnerPredictions.length);
   const primaryAction = nextMissing
@@ -210,6 +231,55 @@ export default async function DashboardPage({
               <Link href="/vorrunde" className="shrink-0 rounded-xl bg-sun px-3 py-2 text-sm font-black text-amber-950">
                 Ansehen
               </Link>
+            </div>
+          </section>
+        ) : null}
+
+        {finalMatch && worldChampionName ? (
+          <section className="mt-5 rounded-2xl bg-white p-4 shadow-card">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-2 text-sm font-black uppercase text-pitch">
+                  <Sparkles className="h-5 w-5 text-sun" />
+                  Weltmeister-Bonus
+                </p>
+                <h2 className="mt-1 text-2xl font-black">Weltmeister: {worldChampionName}</h2>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  {correctWorldChampionTips.length
+                    ? `${correctWorldChampionTips.length} richtige Familien-Tipps haben 10 Bonuspunkte bekommen.`
+                    : "Niemand hatte den Weltmeister richtig getippt."}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-sun px-3 py-1 text-sm font-black text-amber-950">10 Punkte</span>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-pitch/10 p-3">
+              <p className="text-sm font-bold text-slate-600">Dein Tipp</p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <strong className="text-lg text-ink">{worldChampionPrediction?.team?.name ?? "Nicht getippt"}</strong>
+                <span className={`rounded-full px-3 py-1 text-sm font-black ${worldChampionPrediction?.points ? "bg-pitch text-white" : "bg-slate-100 text-slate-600"}`}>
+                  +{worldChampionPrediction?.points ?? 0}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <p className="text-sm font-black text-slate-600">Familientipps</p>
+              {worldChampionFamilyRows.length ? worldChampionFamilyRows.map(({ player: familyPlayer, tip }) => (
+                <div key={familyPlayer.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-ink">{familyPlayer.name}</p>
+                    <p className="text-sm font-semibold text-slate-500">{tip?.team?.name ?? "Nicht getippt"}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-black ${(tip?.points ?? 0) > 0 ? "bg-pitch text-white" : "bg-white text-slate-500"}`}>
+                    +{tip?.points ?? 0}
+                  </span>
+                </div>
+              )) : (
+                <p className="rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-600">
+                  Es wurden keine Weltmeistertipps gespeichert.
+                </p>
+              )}
             </div>
           </section>
         ) : null}
