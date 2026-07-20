@@ -84,11 +84,12 @@ export default async function DashboardPage({
   const progress = matches.length ? Math.round(((matches.length - missing.length) / matches.length) * 100) : 100;
   const worldChampionPrediction = bonusPredictions.find((item) => item.type === "world_champion") ?? null;
   const finalMatch = matches.find((match) => match.round === "Finale" && match.status === "finished" && match.winner_team_id);
-  const worldChampionName = finalMatch?.winner_team_id === finalMatch?.home_team_id
-    ? finalMatch.home_team?.name ?? finalMatch.home_team_label
-    : finalMatch?.winner_team_id === finalMatch?.away_team_id
-      ? finalMatch.away_team?.name ?? finalMatch.away_team_label
-      : null;
+  let worldChampionName: string | null = null;
+  if (finalMatch?.winner_team_id === finalMatch?.home_team_id) {
+    worldChampionName = finalMatch.home_team?.name ?? finalMatch.home_team_label;
+  } else if (finalMatch?.winner_team_id === finalMatch?.away_team_id) {
+    worldChampionName = finalMatch.away_team?.name ?? finalMatch.away_team_label;
+  }
   const correctWorldChampionTips = worldChampionFamilyTips.filter((item) => item.points > 0);
   const worldChampionTipByPlayer = new Map(worldChampionFamilyTips.map((item) => [item.player_id, item]));
   const worldChampionFamilyRows = players
